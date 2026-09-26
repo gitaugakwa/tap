@@ -29,3 +29,4 @@ Append-only. **Never edit or delete a row.** To change a decision, add a new row
 | D23 | 09-26 | ENS setup (proxies, roles, registrar deploy) lives in `scripts/`, not in the SDK | SDK stays read-mostly; setup is a one-off admin job |
 | D24 | 09-26 | Small commits (one logical change, ≤ ~150 lines), a four-section commit message, protected flows P1–P7 | Team request: no regressions, visible impact per change |
 | D25 | 09-26 | **No AI attribution** in commits or PRs; enforced by `.claude/settings.json`, the commit-msg hook and CI | Team request |
+| D26 | 09-26 | `getPaymentChain` re-exported from `@tap/core` (`index.ts`) so `apps/mobile` can display the deployed TapPay address in Settings → About | Read-only accessor; the address stays in `chains.ts` (INV-15), the app keeps holding no addresses (INV-14) |

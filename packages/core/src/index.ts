@@ -3,6 +3,7 @@ export {
   DEFAULT_TOKEN,
   ENS_CHAIN_ID,
   ENS_PARENT,
+  getPaymentChain,
   PAYMENT_CHAIN_ID,
 } from "./config/chains";
 export { configureTap } from "./config/clients";
