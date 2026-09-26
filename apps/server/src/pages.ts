@@ -37,7 +37,7 @@ export function landingPage(apkDownloadUrl: string): string {
           <h1>The cash register is already in your pocket.</h1>
           <p class="hero-lede">Tap turns an Android phone into a payment terminal for Japan's cash-first merchants. One amount. One tap. One verified identity.</p>
           <div class="hero-actions">${downloadLink(apkDownloadUrl)}<a class="text-link" href="#how">See how it works <span aria-hidden="true">&darr;</span></a></div>
-          <p class="demo-note">Android development build <span>/</span> Base Sepolia <span>/</span> USDC</p>
+          <p class="demo-note">Android preview build <span>/</span> Base Sepolia <span>/</span> USDC</p>
         </div>
         <div class="terminal-stage" aria-label="Tap payment terminal preview">
           <div class="sun"></div><p class="stage-note">YOUR PHONE<br>IS THE TERMINAL</p>
