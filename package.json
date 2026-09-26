@@ -11,7 +11,7 @@
     "lint": "biome check .",
     "start": "bun apps/server/src/index.ts",
     "typecheck": "bun run --filter '*' typecheck",
-    "test": "bun test packages apps/server",
+    "test": "bun test packages apps",
     "test:contracts": "cd contracts && forge test",
     "abi": "bun run scripts/generate-abi.ts",
     "abi:check": "bun run abi && git diff --exit-code packages/core/src/config/abi.ts",

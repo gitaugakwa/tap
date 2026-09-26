@@ -18,6 +18,18 @@ const config: ExpoConfig = {
   android: {
     package: "xyz.tap.demo",
     permissions: ["android.permission.NFC"],
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        category: ["BROWSABLE", "DEFAULT"],
+        data: {
+          scheme: "https",
+          host: "tap-pay.xyz",
+          path: "/p",
+        },
+      },
+    ],
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#171713",

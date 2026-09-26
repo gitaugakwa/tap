@@ -89,6 +89,18 @@ export async function readRequest({ timeoutMs = 30_000 } = {}): Promise<string> 
 ```
 Reader mode matters: it stops the customer phone's own wallet/HCE from answering while it reads.
 
+### Customer: launch from the home screen
+When the customer app is not already open, Android can dispatch the same HTTPS NDEF record to
+Tap. `app.config.ts` registers a verified App Link for `https://tap-pay.xyz/p`, while
+`withHce.js` adds the legacy `NDEF_DISCOVERED` filter used before Android 16. The server must
+publish `/.well-known/assetlinks.json` for package `xyz.tap.demo` and every APK signing
+certificate used on test devices. The app forwards the full URL as untrusted input to the normal
+verification screen; it never renders query data directly.
+
+Test this with both phones unlocked and the customer app closed. Android 17 and later may show a
+system notification before opening an HTTPS NFC link; locked or screen-off launch is not a demo
+requirement.
+
 ## Spike (Flow track, first ~1.5h, highest-risk item)
 **Goal:** phone A (HCE) serves a hardcoded `https://tap-pay.xyz/p?v=1&test=1` and phone B reads and displays it.
 
