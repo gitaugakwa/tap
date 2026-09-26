@@ -22,7 +22,7 @@ export const paymentChains = {
 export const ensConfig = {
   chain: sepolia,
   parent: ENS_PARENT,
-  merchantRegistrar: "0x0000000000000000000000000000000000000000" as Address,
+  merchantRegistrar: "0x4B46315e1e353D56d1f90FE0676D6A015901a866" as Address,
 } as const;
 
 export const DEFAULT_TOKEN = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as Address;

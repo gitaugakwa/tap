@@ -21,12 +21,21 @@ import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 import { ENS_PARENT, ensConfig } from "../packages/core/src/config/chains";
 
-// ENSv2 Sepolia beta (docs/04). Setup-only: never read by the SDK or the app.
-// Verified live: this factory verifies the parent's existing resolver proxy and
-// reports its implementation as the PermissionedResolverImpl from the same table.
+// ENSv2 Sepolia beta. Setup-only: never read by the SDK or the app.
+//
+// These come from two sources, which is deliberate and was established by probing
+// the live chain rather than trusting either one:
+//   - Registry and factory are docs/04's. The parent name genuinely lives in this
+//     registry, and this factory verifies the parent's existing resolver proxy.
+//   - The UserRegistry implementation is the one recorded in the vendored
+//     contracts-v2 checkout, NOT docs/04's. docs/04's implementation predates the
+//     current UserRegistry: it has no initialize(address,uint256) selector (it
+//     takes the array form docs/04 documents) and deployProxy against it reverts.
+//     The vendored one matches the source TapMerchantRegistrar is compiled
+//     against, which is the consistency that actually matters.
 const ETH_REGISTRY = getAddress("0x657ea849311d3d5823348dded7c2aaafb3ede09e");
 const VERIFIABLE_FACTORY = getAddress("0x9e726eb570beb6bceb495ab8cda7df517d4e841c");
-const USER_REGISTRY_IMPL = getAddress("0xa80338aaa8d23831cea25e858d1774534abb0263");
+const USER_REGISTRY_IMPL = getAddress("0x840fa461059862ea466a711e8c98c8de732061c0");
 
 // EnhancedAccessControl role bitmaps (nybble-packed; see RegistryRolesLib and
 // PermissionedResolverLib in the vendored contracts-v2).
