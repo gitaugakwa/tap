@@ -1,4 +1,11 @@
-import { createPublicClient, http, type PublicClient } from "viem";
+import {
+  createPublicClient,
+  createWalletClient,
+  http,
+  type LocalAccount,
+  type PublicClient,
+  type WalletClient,
+} from "viem";
 import type { TapConfig } from "../types";
 import { ensConfig, PAYMENT_CHAIN_ID, paymentChains } from "./chains";
 
@@ -25,6 +32,20 @@ export function getPaymentClient(): PublicClient {
   }) as PublicClient;
 
   return paymentClient;
+}
+
+export function getPaymentWalletClient(
+  account: LocalAccount,
+): WalletClient<
+  ReturnType<typeof http>,
+  (typeof paymentChains)[typeof PAYMENT_CHAIN_ID]["chain"],
+  LocalAccount
+> {
+  return createWalletClient({
+    account,
+    chain: paymentChains[PAYMENT_CHAIN_ID].chain,
+    transport: http(config.rpcUrls?.payment),
+  });
 }
 
 export function getEnsClient(): PublicClient {
