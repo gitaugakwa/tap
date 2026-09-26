@@ -96,7 +96,9 @@ function decode(url: string): SignedRequest {
     ) as Record<(typeof required)[number], string>;
     if (values.v !== "1" || !/^\d+$/.test(values.c)) throw new Error("invalid version");
     if (!isAddress(values.m) || !isAddress(values.t)) throw new Error("invalid address");
-    if (!/^\d+$/.test(values.a) || !/^\d+$/.test(values.x)) throw new Error("invalid number");
+    if (!/^\d+$/.test(values.a) || BigInt(values.a) <= 0n || !/^\d+$/.test(values.x)) {
+      throw new Error("invalid number");
+    }
     if (!isHex(values.k) || size(values.k) !== 32) throw new Error("invalid nonce");
     if (!isHex(values.s) || size(values.s) < 65) throw new Error("invalid signature");
     return {
@@ -125,7 +127,9 @@ export function tamperRequestUrl(url: string, field: TamperField): string {
   const parsed = new URL(url);
   const current = parsed.searchParams.get(field);
   if (current === null) throw new TapDecodeError(`Missing field: ${field}`);
-  if (field === "m" || field === "t" || field === "k") {
+  if (field === "m" || field === "t") {
+    parsed.searchParams.set(field, getAddress(flipLastHex(current).toLowerCase()));
+  } else if (field === "k") {
     parsed.searchParams.set(field, flipLastHex(current));
   } else if (field === "n") {
     parsed.searchParams.set(field, `${current}-tampered`);
