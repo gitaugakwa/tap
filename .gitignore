@@ -6,6 +6,7 @@ dist/
 coverage/
 contracts/out/
 contracts/cache/
+contracts/broadcast/
 apps/mobile/android/
 apps/mobile/ios/
 *.apk
