@@ -22,7 +22,7 @@ function downloadLink(apkDownloadUrl: string): string {
 }
 
 const tickerLine =
-  "NO CARD READER <b>+</b> LIVE ENS IDENTITY <b>+</b> SIGNED REQUESTS <b>+</b> ONCHAIN SETTLEMENT <b>+</b>";
+  "NO CARD READER <b>+</b> LIVE ENS IDENTITY <b>+</b> PAY WITH ETH <b>+</b> UNISWAP EXACT OUTPUT <b>+</b>";
 
 function ticker(): string {
   return `<section class="ticker" aria-label="Product principles"><div class="ticker-track"><div class="ticker-line">${tickerLine}</div><div class="ticker-line" aria-hidden="true">${tickerLine}</div></div></section>`;
@@ -31,10 +31,10 @@ function ticker(): string {
 export function landingPage(apkDownloadUrl: string): string {
   return document(
     "Tap - Payments at the pace of a tap",
-    "Turn any Android phone into a secure, ENS-verified payment terminal.",
+    "Turn any Android phone into an ENS-verified terminal where customers pay directly in USDC or route ETH through Uniswap.",
     `<header class="site-header wrap">
       <a class="brand" href="/" aria-label="Tap home"><span class="brand-mark">T</span><span>TAP</span></a>
-      <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#trust">Why Tap</a><a href="https://github.com/gitaugakwa/tap">GitHub</a></nav>
+      <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#uniswap">Uniswap</a><a href="#trust">Why Tap</a><a href="https://github.com/gitaugakwa/tap">GitHub</a></nav>
       <a class="header-cta" href="${apkDownloadUrl}">Get the demo <span aria-hidden="true">&nearr;</span></a>
     </header>
     <main>
@@ -42,9 +42,9 @@ export function landingPage(apkDownloadUrl: string): string {
         <div class="hero-copy">
           <p class="eyebrow"><span></span> ETHGLOBAL TOKYO 2026</p>
           <h1>The cash register is already in your pocket.</h1>
-          <p class="hero-lede">Tap turns an Android phone into a verified payment terminal for merchants anywhere. Inspired by Japan's tap-first culture, shaped for markets like Kenya, and built for a global checkout.</p>
+          <p class="hero-lede">Tap turns an Android phone into a verified payment terminal for merchants anywhere. Customers pay directly in USDC or route ETH through Uniswap while merchants receive exact USDC. Inspired by Japan's tap-first culture, shaped for markets like Kenya, and built for a global checkout.</p>
           <div class="hero-actions">${downloadLink(apkDownloadUrl)}<a class="text-link" href="#how">See how it works <span aria-hidden="true">&darr;</span></a></div>
-          <p class="demo-note">Android preview build <span>/</span> Base Sepolia <span>/</span> USDC</p>
+          <p class="demo-note">Android preview <span>/</span> Base Sepolia <span>/</span> ENS + UNISWAP</p>
         </div>
         <div class="terminal-stage" aria-label="Tap payment terminal preview">
           <div class="sun"></div><p class="stage-note">YOUR PHONE<br>IS THE TERMINAL</p>
@@ -63,9 +63,13 @@ export function landingPage(apkDownloadUrl: string): string {
         <ol>
           <li><span>01</span><div class="step-icon">$</div><h3>Enter the charge</h3><p>The merchant enters an amount. Tap signs a short-lived payment request on the device.</p></li>
           <li><span>02</span><div class="step-icon">)))</div><h3>Tap phones</h3><p>NFC moves the request directly to the customer's Android phone. No reader, counter hardware, or printed tag.</p></li>
-          <li><span>03</span><div class="step-icon">OK</div><h3>Verify, then pay</h3><p>The app checks the live ENS identity and signature before showing who gets paid. Settlement happens on Base.</p></li>
+          <li><span>03</span><div class="step-icon">OK</div><h3>Verify, then pay</h3><p>After the live ENS check, pay directly in USDC or choose ETH. Uniswap routes ETH to the merchant's exact USDC price.</p></li>
         </ol>
       </section>
+      <section class="swap" id="uniswap"><div class="wrap swap-grid">
+        <div class="swap-copy"><p class="eyebrow"><span></span> EXACT OUTPUT, ROUTED BY UNISWAP</p><h2>Pay in ETH.<br>Land in USDC.</h2><p>The merchant prices once in USDC. The customer can pay that request with ETH through a bounded Uniswap route, while the merchant still receives the exact signed amount.</p><div class="swap-facts"><span><b>EXACT OUTPUT</b><small>Merchant receives the requested USDC</small></span><span><b>BOUNDED INPUT</b><small>Maximum ETH is shown before payment</small></span><span><b>ATOMIC</b><small>Swap and settlement succeed together</small></span></div></div>
+        <div class="route-card" aria-label="ETH to USDC payment route"><div class="route-head"><span>PAYMENT ROUTE</span><i>LIVE</i></div><div class="route-asset"><small>CUSTOMER PAYS</small><b>ETH</b></div><div class="route-hop"><span>UNISWAP</span><b>EXACT-OUTPUT ROUTE</b><small>Unused ETH is refunded</small></div><div class="route-asset route-output"><small>MERCHANT RECEIVES</small><b>USDC</b></div><div class="route-total"><span>SIGNED PRICE</span><b>$5.00 EXACT</b></div></div>
+      </div></section>
       <section class="trust" id="trust"><div class="wrap trust-grid">
         <div class="trust-copy"><p class="eyebrow light"><span></span> TRUST THE NAME</p><h2>Know the merchant.<br>Before the money moves.</h2><p>A payment link is untrusted input. Tap does not rely on the tag for identity or token details. The customer app verifies the signed request and resolves the merchant's live <code>.tap.eth</code> name first.</p><a href="https://github.com/gitaugakwa/tap" class="text-link light">Read the open source code <span aria-hidden="true">&nearr;</span></a></div>
         <div class="verify-card"><div class="verify-head"><span>IDENTITY CHECK</span><i>LIVE</i></div><div class="verify-name"><span class="merchant-avatar">T</span><span><b>Takoyaki Stand</b><small>yoyogi-market.tap.eth</small></span></div><ul><li><i></i>Direct subname of tap.eth <b>PASS</b></li><li><i></i>ENS owner matches signer <b>PASS</b></li><li><i></i>Request is signed and current <b>PASS</b></li></ul><div class="verified-stamp">VERIFIED TO PAY</div></div>
