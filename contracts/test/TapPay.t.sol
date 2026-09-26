@@ -83,6 +83,19 @@ contract TapPayTest is Test {
         tapPay.pay(request, signature);
     }
 
+    function test_NonceIsolation_BetweenMerchants() public {
+        TapPay.PaymentRequest memory otherRequest = request;
+        otherRequest.merchant = vm.addr(WRONG_PK);
+
+        _approveAndPay(request, _signRequest(request, MERCHANT_PK));
+        _approveAndPay(otherRequest, _signRequest(otherRequest, WRONG_PK));
+
+        assertTrue(tapPay.isPaid(request.merchant, request.nonce));
+        assertTrue(tapPay.isPaid(otherRequest.merchant, otherRequest.nonce));
+        assertEq(token.balanceOf(request.merchant), AMOUNT);
+        assertEq(token.balanceOf(otherRequest.merchant), AMOUNT);
+    }
+
     function test_RevertWhen_Expired() public {
         bytes memory signature = _signRequest(request, MERCHANT_PK);
         vm.warp(request.expiry);
@@ -146,6 +159,15 @@ contract TapPayTest is Test {
         _expectBadSignature(request, _signDigest(digest, MERCHANT_PK));
     }
 
+    function test_RevertWhen_WrongVerifyingContract() public {
+        TapPay otherTapPay = new TapPay();
+        bytes memory signature = _signRequest(request, MERCHANT_PK);
+
+        vm.expectRevert(TapPay.BadSignature.selector);
+        vm.prank(payer);
+        otherTapPay.pay(request, signature);
+    }
+
     function test_PermitFrontRun_StillSettles() public {
         bytes memory requestSignature = _signRequest(request, MERCHANT_PK);
         (uint8 v, bytes32 r, bytes32 s) = _signPermit(AMOUNT, request.expiry, PAYER_PK);
@@ -182,6 +204,15 @@ contract TapPayTest is Test {
 
         assertEq(token.balanceOf(address(wallet)), AMOUNT);
         assertTrue(tapPay.isPaid(address(wallet), request.nonce));
+    }
+
+    function test_RevertWhen_ERC1271WrongSignature() public {
+        MockERC1271Wallet wallet = new MockERC1271Wallet(merchant);
+        request.merchant = address(wallet);
+        bytes memory signature = _signRequest(request, WRONG_PK);
+
+        assertEq(wallet.isValidSignature(tapPay.hashRequest(request), signature), bytes4(0xffffffff));
+        _expectBadSignature(request, signature);
     }
 
     function test_HashParity_FixedVector() public {
