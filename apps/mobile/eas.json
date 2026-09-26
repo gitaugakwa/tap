@@ -8,6 +8,7 @@
       }
     },
     "preview": {
+      "bun": "1.4.2",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
