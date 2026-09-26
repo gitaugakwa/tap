@@ -1,0 +1,25 @@
+{
+  "name": "@tap/react-native",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@tap/core": "0.0.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-hce": "0.3.0",
+    "react-native-nfc-manager": "3.17.2"
+  },
+  "devDependencies": {
+    "tsup": "8.5.1",
+    "typescript": "5.9.3"
+  }
+}
