@@ -46,7 +46,7 @@ export function signRequest(
     .then((signature) => ({ chainId: PAYMENT_CHAIN_ID, request: canonicalRequest, signature }));
 }
 
-export function hashRequest(request: PaymentRequest, chainId = PAYMENT_CHAIN_ID): Hex {
+export function hashRequest(request: PaymentRequest, chainId: number = PAYMENT_CHAIN_ID): Hex {
   return hashTypedData({
     domain: getTapPayDomain(chainId),
     types: PAYMENT_REQUEST_TYPES,
