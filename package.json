@@ -9,6 +9,7 @@
   "scripts": {
     "arch": "bun run scripts/check-architecture.ts",
     "lint": "biome check .",
+    "start": "bun apps/server/src/index.ts",
     "typecheck": "bun run --filter '*' typecheck",
     "test": "bun test packages apps/server",
     "test:contracts": "cd contracts && forge test",
