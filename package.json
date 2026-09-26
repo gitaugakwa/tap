@@ -16,6 +16,8 @@
     "abi:check": "bun run abi && git diff --exit-code packages/core/src/config/abi.ts",
     "check": "bun run arch && bun run lint && bun run typecheck && bun run test && bun run test:contracts && bun run abi:check",
     "ens:setup": "bun run scripts/setup-ens.ts",
+    "ens:register": "bun run scripts/register-merchant.ts",
+    "ens:check": "bun run scripts/check-ens.ts",
     "hooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
