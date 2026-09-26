@@ -1,0 +1,28 @@
+name: check
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: bun install --frozen-lockfile
+      - run: bun run check
+      - name: Check commit messages
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA"); do
+            git log -1 --format=%B "$sha" > /tmp/message
+            sh .githooks/commit-msg /tmp/message
+          done
