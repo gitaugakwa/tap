@@ -1,32 +1,98 @@
-import { Link } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { getNfcSupport } from "@tap/react-native";
+import { Link, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Button } from "../src/components/Button";
+import { copy } from "../src/copy";
 import { updateSettings } from "../src/settings-store";
+import { theme } from "../src/theme";
 
 export default function RolePickerScreen() {
+  const router = useRouter();
+  const [canEmulate, setCanEmulate] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getNfcSupport()
+      .then((support) => {
+        if (!cancelled) setCanEmulate(support.canEmulate);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function choose(role: "merchant" | "customer") {
+    updateSettings({ role });
+    router.push(role === "merchant" ? "/merchant" : "/customer");
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tap</Text>
-      <Text style={styles.subtitle}>Pay and get paid with a tap</Text>
-      <Link href="/merchant" asChild onPress={() => updateSettings({ role: "merchant" })}>
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>I'm selling</Text>
-        </Pressable>
-      </Link>
-      <Link href="/customer" asChild onPress={() => updateSettings({ role: "customer" })}>
-        <Pressable style={styles.button}>
-          <Text style={styles.buttonText}>I'm paying</Text>
-        </Pressable>
-      </Link>
-      <Link href="/settings">Settings</Link>
-      <Link href="/spike">NFC spike</Link>
+      <View style={styles.brand}>
+        <View style={styles.brandMark}>
+          <Text style={styles.brandMarkText}>T</Text>
+        </View>
+        <Text style={styles.brandName}>Tap</Text>
+      </View>
+
+      <View style={styles.hero}>
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowDash} />
+          <Text style={styles.eyebrow}>ETHGlobal Tokyo 2026</Text>
+        </View>
+        <Text style={styles.tagline}>{copy.labels.tagline}</Text>
+      </View>
+
+      <View style={styles.actions}>
+        <Button label={copy.labels.merchantRole} onPress={() => choose("merchant")} />
+        {canEmulate ? null : <Text style={styles.note}>{copy.labels.noEmulation}</Text>}
+        <Button
+          label={copy.labels.customerRole}
+          variant="secondary"
+          onPress={() => choose("customer")}
+        />
+        <Link href="/settings" style={styles.settingsLink}>
+          Settings
+        </Link>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", gap: 16, padding: 24 },
-  title: { fontSize: 48, fontWeight: "700" },
-  subtitle: { color: "#4b5563", fontSize: 18, marginBottom: 24 },
-  button: { backgroundColor: "#111827", borderRadius: 12, padding: 18 },
-  buttonText: { color: "#ffffff", fontSize: 18, fontWeight: "600", textAlign: "center" },
+  container: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+    justifyContent: "space-between",
+    padding: theme.spacing * 3,
+  },
+  brand: { alignItems: "center", flexDirection: "row", gap: theme.spacing * 1.25 },
+  brandMark: {
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.pill,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
+  },
+  brandMarkText: { ...theme.type.display, color: theme.colors.onSurface, fontSize: 19 },
+  brandName: { ...theme.type.label, color: theme.colors.foreground, fontSize: 18 },
+  hero: { gap: theme.spacing * 2 },
+  eyebrowRow: { alignItems: "center", flexDirection: "row", gap: theme.spacing },
+  eyebrowDash: { backgroundColor: theme.colors.warning, height: 2, width: 25 },
+  eyebrow: { ...theme.type.label, color: theme.colors.foreground, fontSize: 10 },
+  tagline: { ...theme.type.display, color: theme.colors.foreground, fontSize: 46, lineHeight: 48 },
+  actions: { gap: theme.spacing * 1.5 },
+  note: { color: theme.colors.warning, fontSize: 13, textAlign: "center" },
+  settingsLink: {
+    ...theme.type.label,
+    color: theme.colors.muted,
+    fontSize: 10,
+    paddingTop: theme.spacing,
+    textAlign: "center",
+  },
 });
