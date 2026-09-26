@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "biome check .",
     "typecheck": "bun run --filter '*' typecheck",
-    "check": "bun run lint && bun run typecheck",
+    "test": "bun test packages",
+    "check": "bun run lint && bun run typecheck && bun run test",
     "hooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
