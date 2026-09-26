@@ -1,8 +1,9 @@
 import { cancelRead, readRequest, TransportError } from "@tap/react-native";
 import { Link, useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BalanceRow } from "../../src/components/BalanceRow";
+import { QrScanner } from "../../src/components/QrScanner";
 import { copy } from "../../src/copy";
 import { useSettings } from "../../src/settings-store";
 import { theme } from "../../src/theme";
@@ -19,6 +20,7 @@ export default function CustomerReadyScreen() {
   const [settings] = useSettings();
   const { address } = useWallet();
   const [readError, setReadError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +45,18 @@ export default function CustomerReadyScreen() {
     }, [settings.transport, router]),
   );
 
+  if (scanning) {
+    return (
+      <QrScanner
+        onScan={(url) => {
+          setScanning(false);
+          router.push({ pathname: "/customer/confirm", params: { url } });
+        }}
+        onCancel={() => setScanning(false)}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -59,6 +73,10 @@ export default function CustomerReadyScreen() {
       <Text style={styles.prompt}>Hold near the merchant's phone</Text>
 
       {readError ? <Text style={styles.error}>{readError}</Text> : null}
+
+      <Pressable style={styles.scanButton} onPress={() => setScanning(true)}>
+        <Text style={styles.scanButtonText}>Scan QR instead</Text>
+      </Pressable>
     </View>
   );
 }
@@ -76,4 +94,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   error: { color: theme.colors.failure, fontSize: 14, textAlign: "center" },
+  scanButton: {
+    borderColor: theme.colors.muted,
+    borderRadius: theme.spacing,
+    borderWidth: 1,
+    marginTop: "auto",
+    padding: theme.spacing * 2,
+  },
+  scanButtonText: {
+    color: theme.colors.foreground,
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });
