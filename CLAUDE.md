@@ -205,8 +205,8 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 - [ ] S1 `tap.eth` registered (or `tappay.eth` + decision)
 - [ ] S2 `TapPay.sol` + tests + hash vector
 - [ ] S3 core request layer
-- [ ] S4 TapPay deployed → `chains.ts` + `abi.ts`
-- [ ] S5 core payment layer
+- [x] S4 TapPay deployed → `chains.ts` + `abi.ts`
+- [x] S5 core payment layer
 - [ ] S6 registrar + ENS setup + `e2e-merchant.tap.eth`
 - [ ] S7 core verification
 - [ ] S8 live e2e green
