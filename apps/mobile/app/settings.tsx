@@ -1,8 +1,25 @@
 import type { WalletBalances } from "@tap/core";
-import { DEFAULT_TOKEN, getWalletBalances } from "@tap/core";
+import {
+  DEFAULT_TOKEN,
+  ENS_CHAIN_ID,
+  getPaymentChain,
+  getWalletBalances,
+  PAYMENT_CHAIN_ID,
+} from "@tap/core";
+import type { TamperField } from "@tap/core/testing";
 import * as Clipboard from "expo-clipboard";
+import Constants from "expo-constants";
 import { type ReactNode, useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSettings } from "../src/settings-store";
 import { theme } from "../src/theme";
 import { useWallet } from "../src/wallet/WalletProvider";
@@ -11,6 +28,8 @@ const FAKE_BALANCES: WalletBalances = {
   gas: { symbol: "ETH", amount: 50_000_000_000_000_000n, display: "0.05" },
   tokens: [{ address: DEFAULT_TOKEN, symbol: "USDC", amount: 12_000_000n, display: "$12.00" }],
 };
+
+const TAMPER_FIELDS: TamperField[] = ["m", "n", "t", "a", "x", "k", "c"];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -125,6 +144,61 @@ export default function SettingsScreen() {
           ))}
         </View>
       </Section>
+
+      <Section title="Demo">
+        <Text style={styles.muted}>
+          Serves a tampered tag so the customer phone shows "Unverified merchant". For the failure
+          demo only.
+        </Text>
+        <View style={styles.row}>
+          <Pressable
+            style={[styles.segment, settings.demoTamper === null && styles.segmentActive]}
+            onPress={() => setSettings({ demoTamper: null })}
+          >
+            <Text
+              style={[styles.segmentText, settings.demoTamper === null && styles.segmentTextActive]}
+            >
+              Off
+            </Text>
+          </Pressable>
+          {TAMPER_FIELDS.map((field) => (
+            <Pressable
+              key={field}
+              style={[styles.segment, settings.demoTamper === field && styles.segmentActive]}
+              onPress={() => setSettings({ demoTamper: field })}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  settings.demoTamper === field && styles.segmentTextActive,
+                ]}
+              >
+                {field}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </Section>
+
+      <Section title="Developer">
+        <View style={styles.switchRow}>
+          <Text style={styles.value}>Offline fake chain</Text>
+          <Switch
+            value={settings.fakeChain}
+            onValueChange={(fakeChain) => setSettings({ fakeChain })}
+          />
+        </View>
+      </Section>
+
+      <Section title="About">
+        <Text style={styles.muted}>Version {Constants.expoConfig?.version ?? "unknown"}</Text>
+        <Text style={styles.muted}>
+          Payment chain {PAYMENT_CHAIN_ID} · ENS chain {ENS_CHAIN_ID}
+        </Text>
+        <Text style={styles.muted} selectable>
+          TapPay {getPaymentChain(PAYMENT_CHAIN_ID)?.tapPay ?? "not deployed"}
+        </Text>
+      </Section>
     </ScrollView>
   );
 }
@@ -144,7 +218,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: theme.spacing * 1.5,
   },
-  row: { flexDirection: "row", gap: theme.spacing },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing },
+  switchRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   segment: {
     borderColor: theme.colors.muted,
     borderRadius: theme.spacing,
