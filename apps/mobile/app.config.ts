@@ -4,7 +4,7 @@ const config: ExpoConfig = {
   name: "Tap",
   slug: "tap",
   scheme: "tap",
-  version: "0.0.0",
+  version: "0.0.2",
   orientation: "portrait",
   icon: "./assets/icon.png",
   backgroundColor: "#171713",
