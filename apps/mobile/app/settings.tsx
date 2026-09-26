@@ -79,7 +79,7 @@ export default function SettingsScreen() {
   function confirmResetWallet() {
     Alert.alert(
       "Reset wallet?",
-      "This deletes this device's key and creates a new one. Demo only.",
+      "This permanently deletes this device's key and creates a new one. Registered merchant names and funds stay linked to the old wallet and cannot be recovered here.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Reset", style: "destructive", onPress: () => void resetWallet() },
@@ -131,6 +131,13 @@ export default function SettingsScreen() {
           autoCorrect={false}
           placeholder="yoyogi-market.tap.eth"
         />
+        <Pressable
+          accessibilityRole="button"
+          style={styles.secondaryButton}
+          onPress={() => router.push("/merchant/register")}
+        >
+          <Text style={styles.secondaryButtonText}>Register this wallet</Text>
+        </Pressable>
       </Section>
 
       <Section title="Transport">

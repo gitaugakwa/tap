@@ -19,6 +19,8 @@ type PaymentWalletClient = WalletClient<
   LocalAccount
 >;
 
+type EnsWalletClient = WalletClient<ReturnType<typeof http>, typeof ensConfig.chain, LocalAccount>;
+
 export function configureTap(nextConfig: TapConfig = {}): void {
   config = nextConfig;
   paymentClient = null;
@@ -60,4 +62,14 @@ export function getEnsClient(): PublicClient {
   }) as PublicClient;
 
   return ensClient;
+}
+
+export function getEnsWalletClient(account: LocalAccount): EnsWalletClient {
+  if (config.ensWalletClient) return config.ensWalletClient as EnsWalletClient;
+
+  return createWalletClient({
+    account,
+    chain: ensConfig.chain,
+    transport: http(config.rpcUrls?.ens),
+  });
 }

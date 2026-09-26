@@ -88,7 +88,9 @@ export type WalletBalances = {
 export type TapConfig = {
   rpcUrls?: { payment?: string; ens?: string };  // defaults: public RPCs
   paymentClient?: PublicClient;                  // tests / advanced
+  paymentWalletClient?: WalletClient;            // tests / advanced
   ensClient?: PublicClient;                      // tests / advanced
+  ensWalletClient?: WalletClient;                // tests / advanced
   now?: () => Date;                              // tests only
 };
 
@@ -109,6 +111,8 @@ export type { Address, Hash, Hex, LocalAccount };
 | `resolveMerchant` | `(name: string) => Promise<Address \| null>` | Sepolia ENSv2; zero address → `null` |
 | `getMerchantProfile` | `(name: string) => Promise<MerchantProfile>` | Address + text `name`, in parallel |
 | `checkMerchantSetup` | `(name: string, address: Address) => Promise<MerchantSetupCheck>` | Merchant self-check (story M4) |
+| `isMerchantLabelAvailable` | `(label: string) => Promise<boolean>` | Validates a direct label and checks the Sepolia registrar |
+| `registerMerchant` | `(o: { label: string; displayName: string; owner: Address }, account: LocalAccount) => Promise<Hash>` | Validates ownership, simulates, registers, and waits for 1 Sepolia confirmation |
 | `signPermit` | `(s: SignedRequest, account: LocalAccount) => Promise<PermitSig>` | EIP-2612: owner = account, spender = TapPay, value = amount, deadline = expiry, nonce from token, domain `name`/`version` read from the token (INV-11) |
 | `payWithPermit` | `(s: SignedRequest, account: LocalAccount) => Promise<Hash>` | Offline pre-checks (allowlist, expiry) → `signPermit` → **simulate** → send. Throws `TapPayError` |
 | `quoteSwap` | `(s: SignedRequest, input: "native" \| Address, options?) => Promise<SwapQuote>` | Quotes exact USDC output across configured v3 fee tiers, including WETH-bridged ERC-20 routes; returns an integer-rounded maximum bound to the request |
@@ -129,8 +133,6 @@ export type { Address, Hash, Hex, LocalAccount };
 - `type TapCoreLike`: the subset of the core API the hooks use (`newChargeRequest`, `signRequest`, `encodeRequestUrl`, `decodeRequestUrl`, `verifyRequest`, `payWithPermit`, `waitForPayment`, `watchPaid`)
 - `createFakeCore(overrides?: Partial<TapCoreLike>) => TapCoreLike`: offline fake (real signing + URL codec; verify returns ok with "Takoyaki Stand"; pay returns a fake hash; `watchPaid` fires after 2s). Lets the Flow track build screens before the chain code lands
 - Fixture accounts and requests
-
-**Add-on API** (stubbed now, implemented only if the add-on is picked up): `registerMerchant(o: { label: string; displayName: string; owner: Address }, account: LocalAccount) => Promise<Hash>` (calls `TapMerchantRegistrar` on Sepolia), `isMerchantLabelAvailable(label: string) => Promise<boolean>`.
 
 ## `verifyRequest` order 🔒
 Cheapest first, network last. Each step returns `{ ok: false, reason }` on failure.

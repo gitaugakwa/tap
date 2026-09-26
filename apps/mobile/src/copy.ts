@@ -23,6 +23,14 @@ export type CopyErrorCode =
   | "invalid_quote"
   | "invalid_slippage"
   | "invalid_token"
+  | "invalid_label"
+  | "invalid_display_name"
+  | "owner_mismatch"
+  | "name_taken"
+  | "registration_reverted"
+  | "registration_insufficient_gas"
+  | "registration_network"
+  | "registration_failed"
   | "fallback";
 
 const errorMessages: Record<CopyErrorCode, string> = {
@@ -50,6 +58,14 @@ const errorMessages: Record<CopyErrorCode, string> = {
   invalid_quote: "This quote is no longer valid. Get a new quote and try again.",
   invalid_slippage: "The selected price tolerance isn't supported.",
   invalid_token: "This input token isn't supported for this payment.",
+  invalid_label: "Use 3-32 lowercase letters, numbers, or hyphens.",
+  invalid_display_name: "Display name must be between 1 and 64 bytes.",
+  owner_mismatch: "Registration must use this device wallet.",
+  name_taken: "That merchant name has already been registered.",
+  registration_reverted: "Registration was rejected onchain. No name was registered.",
+  registration_insufficient_gas: "Add Sepolia ETH to this wallet before registering.",
+  registration_network: "Couldn't reach Sepolia. Check your connection and try again.",
+  registration_failed: "Couldn't register this merchant name. Try again.",
   fallback: "Something went wrong. Try again.",
 };
 

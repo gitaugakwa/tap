@@ -51,7 +51,7 @@ index (role picker) ─┬─ "I'm selling" ─► merchant/index ──Charge�
 - On first launch, `secure-key.ts` generates a private key (`generatePrivateKey` from viem **via `@tap/core` re-export**, so the app never imports viem directly) and stores it in `expo-secure-store` under `tap.wallet.v1`.
 - `WalletProvider` exposes `{ account: LocalAccount, address }`. The key never leaves secure storage except in memory, and is never logged or displayed.
 - The same device key is used as merchant signer or customer payer depending on role. For the demo, the merchant phone's address is registered as `yoyogi-market.tap.eth`.
-- Settings → "Reset wallet" (confirm dialog) deletes and regenerates the key. It's demo-only and clearly labelled.
+- Settings → "Reset wallet" warns that funds and registered names remain tied to the old key before deleting and regenerating it.
 
 ## Screens
 
@@ -64,9 +64,15 @@ index (role picker) ─┬─ "I'm selling" ─► merchant/index ──Charge�
 - Header: merchant `displayName` (or `merchantName` until loaded), ⚙︎.
 - `SetupBanner` runs `checkMerchantSetup(merchantName, address)` on focus:
   - ok → small green "yoyogi-market.tap.eth ✓"
-  - not ok → yellow banner with copy for the reason and a "How to fix" link to Settings. **Charging is still allowed** (so we can demo the failure path).
+  - not ok → yellow banner with copy for the reason and a "How to fix" link to merchant registration. **Charging is still allowed** (so we can demo the failure path).
 - Large amount display `$0.00`, `AmountPad` (digits, `.`, backspace). Input is a string; `parseAmountInput` converts it. The app never does maths on amounts.
 - **Charge $X.XX** button (disabled at 0). → `merchant/charge?amount=<base units string>`.
+
+### `merchant/register`: Merchant onboarding
+- Starts with the configured merchant label, validates it locally, then checks availability against `TapMerchantRegistrar` after a short debounce.
+- Registers the device wallet as both owner and resolved address, waits for one Sepolia confirmation, and saves the resulting `*.tap.eth` name in app settings.
+- Keeps the Sepolia faucet beside the registration wallet. Opening it copies the wallet address first; the private key never leaves the app.
+- Offline fake chain disables registration visibly rather than pretending a live ENS name was issued.
 
 ### `merchant/charge`: Waiting / result
 Driven entirely by `useCharge` state:
@@ -84,6 +90,7 @@ If `demoTamper` is on, a small red "DEMO: tampered tag" chip is shown so it's ne
 ### `customer/index`: Ready to tap
 - Header: short address, ⚙︎. `BalanceRow`: "USDC $12.00 · Gas ✓/✗" via `getWalletBalances`.
 - Warnings: no gas → "Add Base Sepolia ETH for gas"; USDC 0 → "Add USDC to pay".
+- Zero-balance warnings include Base and Circle faucet links and copy the customer wallet address before opening them.
 - Big prompt "Hold near the merchant's phone" and `startReading()` on focus (nfc); a **Scan QR instead** button opens `QrScanner` → `submitUrl(url)`.
 - When a URL arrives → navigate to `customer/confirm`.
 
@@ -106,7 +113,7 @@ The Pay button is rendered **only** when `state === "verified" && verify.ok` (IN
 
 ### `settings`
 - **Wallet:** full address (copy button), balances, "Reset wallet" (demo, confirm dialog).
-- **Merchant:** ENS name field (default `yoyogi-market.tap.eth`), setup check result.
+- **Merchant:** ENS name field (default `yoyogi-market.tap.eth`) plus a self-service registration entry point. Manual name editing remains available.
 - **Transport:** NFC / QR toggle.
 - **Demo:** "Serve tampered tag" (field picker m/n/t/a/x/k/c; default off), with a warning that it's for the failure demo.
 - **Developer:** "Offline fake chain" (default off; uses `createFakeCore()` so screens work before the chain code lands). A visible "FAKE CHAIN" chip appears on every screen while it's on. Removed from the UI before recording the demo.

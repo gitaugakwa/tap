@@ -134,7 +134,7 @@ Cut from the bottom. **Never cut the core loop.** Each add-on is its own branch 
 |---|---|---|---|
 | A1 | Pending → green polish (animations, sounds) | Flow | UI only |
 | A2 | **Live demo link:** web verifier page at `/p` (Hono on Bun in `apps/server`) that decodes a request URL and shows the verified merchant card using `@tap/core` | SDK | Gives the ENS "live demo link" a real page; tapping with an iPhone would open it |
-| A3 | In-app merchant onboarding (`registerMerchant` via the registrar) | Both | Needs Sepolia ETH on the merchant phone |
+| A3 | In-app merchant onboarding (`registerMerchant` via the registrar) | Both | Implemented; device acceptance needs Sepolia ETH on the merchant phone |
 | A4 | Merchant avatar from the ENS `avatar` text record | Both | Registrar or owner sets it |
 | A5 | iPhone as customer (reader only) | Flow | Requires an iOS dev build |
 | A6 | Spending limits / session keys | SDK | Big; "What's next" otherwise |
