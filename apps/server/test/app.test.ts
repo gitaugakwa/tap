@@ -9,7 +9,11 @@ describe("public server", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-security-policy")).toContain("default-src 'self'");
     expect(body).toContain("The cash register is already in your pocket.");
+    expect(body).toContain("route ETH through Uniswap");
     expect(body).toContain("shaped for markets like Kenya");
+    expect(body).toContain("EXACT OUTPUT, ROUTED BY UNISWAP");
+    expect(body).toContain("Unused ETH is refunded");
+    expect(body).toContain("$5.00 EXACT");
     expect(body).not.toContain("Japan's cash-first merchants");
     expect(body).not.toContain("Built in Tokyo");
     expect(body).toContain('href="https://github.com/gitaugakwa/tap/tree/main/packages/core"');
