@@ -351,6 +351,400 @@ export const tapPayAbi = [
   },
 ] as const;
 
+export const tapSwapPayAbi = [
+  {
+    type: "constructor",
+    inputs: [
+      {
+        name: "tapPay",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "router",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "permit2",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "weth",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "settlementToken",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "receive",
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "PERMIT2",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract IPermit2",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "ROUTER",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract ITapSwapRouter",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "SETTLEMENT_TOKEN",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "TAP_PAY",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "contract TapPay",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "WETH",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "payWithNative",
+    inputs: [
+      {
+        name: "req",
+        type: "tuple",
+        internalType: "struct TapPay.PaymentRequest",
+        components: [
+          {
+            name: "merchant",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "token",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "nonce",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "expiry",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "merchantName",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+      {
+        name: "requestSignature",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "amountInMaximum",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "path",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "amountIn",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "payWithToken",
+    inputs: [
+      {
+        name: "req",
+        type: "tuple",
+        internalType: "struct TapPay.PaymentRequest",
+        components: [
+          {
+            name: "merchant",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "token",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "amount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "nonce",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "expiry",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "merchantName",
+            type: "string",
+            internalType: "string",
+          },
+        ],
+      },
+      {
+        name: "requestSignature",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "tokenIn",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "amountInMaximum",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "path",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "permitSingle",
+        type: "tuple",
+        internalType: "struct IPermit2.PermitSingle",
+        components: [
+          {
+            name: "details",
+            type: "tuple",
+            internalType: "struct IPermit2.PermitDetails",
+            components: [
+              {
+                name: "token",
+                type: "address",
+                internalType: "address",
+              },
+              {
+                name: "amount",
+                type: "uint160",
+                internalType: "uint160",
+              },
+              {
+                name: "expiration",
+                type: "uint48",
+                internalType: "uint48",
+              },
+              {
+                name: "nonce",
+                type: "uint48",
+                internalType: "uint48",
+              },
+            ],
+          },
+          {
+            name: "spender",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "sigDeadline",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+      {
+        name: "permitSignature",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "amountIn",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "SwapPaid",
+    inputs: [
+      {
+        name: "merchant",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "nonce",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "payer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "tokenIn",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "amountIn",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "tokenOut",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "amountOut",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "error",
+    name: "ExcessiveInput",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidConfiguration",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidMaximumInput",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidPermit",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidRoute",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "InvalidSettlementToken",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "PermitExpiryOverflow",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "ReentrancyGuardReentrantCall",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "RefundFailed",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "SafeERC20FailedOperation",
+    inputs: [
+      {
+        name: "token",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+] as const;
+
 export const tapMerchantRegistrarAbi = [
   {
     type: "constructor",

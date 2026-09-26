@@ -5,6 +5,7 @@
  */
 const CONTRACTS = [
   { name: "TapPay", exportName: "tapPayAbi" },
+  { name: "TapSwapPay", exportName: "tapSwapPayAbi" },
   { name: "TapMerchantRegistrar", exportName: "tapMerchantRegistrarAbi" },
 ] as const;
 
