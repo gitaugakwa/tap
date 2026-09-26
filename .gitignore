@@ -1,0 +1,16 @@
+.env
+.env.local
+.expo/
+node_modules/
+dist/
+coverage/
+contracts/out/
+contracts/cache/
+apps/mobile/android/
+apps/mobile/ios/
+*.apk
+*.jks
+*.keystore
+*.log
+.DS_Store
+Thumbs.db
