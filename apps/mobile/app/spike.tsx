@@ -13,14 +13,48 @@ function errorMessage(error: unknown) {
 export default function NfcSpikeScreen() {
   const sessionRef = useRef<HCESession | null>(null);
   const mountedRef = useRef(true);
+  const [isHceReady, setIsHceReady] = useState(false);
   const [isServing, setIsServing] = useState(false);
   const [isReading, setIsReading] = useState(false);
-  const [status, setStatus] = useState("Ready");
+  const [status, setStatus] = useState("Initializing HCE");
   const [readUrl, setReadUrl] = useState<string | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
+    let cancelled = false;
+
+    async function initializeHce() {
+      try {
+        const session = await HCESession.getInstance();
+        if (cancelled) {
+          if (!mountedRef.current) {
+            await session.setEnabled(false);
+          }
+          return;
+        }
+
+        sessionRef.current = session;
+        await session.setEnabled(false);
+        if (cancelled || !mountedRef.current) {
+          if (!mountedRef.current) {
+            await session.setEnabled(false);
+          }
+          return;
+        }
+
+        setIsServing(false);
+        setIsHceReady(true);
+        setStatus("HCE ready");
+      } catch (error) {
+        if (!cancelled && mountedRef.current) {
+          setStatus(`HCE initialization error: ${errorMessage(error)}`);
+        }
+      }
+    }
+
+    void initializeHce();
     return () => {
+      cancelled = true;
       mountedRef.current = false;
       const session = sessionRef.current;
       sessionRef.current = null;
@@ -31,8 +65,12 @@ export default function NfcSpikeScreen() {
 
   async function toggleHce() {
     try {
-      const session = sessionRef.current ?? (await HCESession.getInstance());
-      sessionRef.current = session;
+      const session = sessionRef.current;
+      if (!session || !isHceReady) {
+        setStatus("HCE is still initializing");
+        return;
+      }
+
       if (!mountedRef.current) {
         await session.setEnabled(false);
         return;
@@ -130,8 +168,14 @@ export default function NfcSpikeScreen() {
         <Text style={styles.title}>NFC spike</Text>
         <Text style={styles.url}>{SPIKE_URL}</Text>
 
-        <Pressable style={[styles.button, isServing && styles.stopButton]} onPress={toggleHce}>
-          <Text style={styles.buttonText}>{isServing ? "Stop HCE" : "Serve test URL"}</Text>
+        <Pressable
+          style={[styles.button, isServing && styles.stopButton]}
+          onPress={toggleHce}
+          disabled={!isHceReady}
+        >
+          <Text style={styles.buttonText}>
+            {isServing ? "Stop HCE" : isHceReady ? "Serve test URL" : "Preparing HCE..."}
+          </Text>
         </Pressable>
 
         <Pressable style={styles.secondaryButton} onPress={readTag} disabled={isReading}>
