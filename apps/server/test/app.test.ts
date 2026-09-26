@@ -9,6 +9,14 @@ describe("public server", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-security-policy")).toContain("default-src 'self'");
     expect(body).toContain("The cash register is already in your pocket.");
+    expect(body).toContain("shaped for markets like Kenya");
+    expect(body).not.toContain("Japan's cash-first merchants");
+    expect(body).not.toContain("Built in Tokyo");
+    expect(body).toContain('href="https://github.com/gitaugakwa/tap/tree/main/packages/core"');
+    expect(body).toContain(
+      'href="https://github.com/gitaugakwa/tap/tree/main/packages/react-native"',
+    );
+    expect(body.match(/class="ticker-line"/g)).toHaveLength(2);
     expect(body).toContain(apkDownloadUrl);
   });
 

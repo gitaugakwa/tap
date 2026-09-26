@@ -21,6 +21,13 @@ function downloadLink(apkDownloadUrl: string): string {
   return `<a class="button button-primary" href="${apkDownloadUrl}"><span>Download for Android</span><span aria-hidden="true">&darr;</span></a>`;
 }
 
+const tickerLine =
+  "NO CARD READER <b>+</b> LIVE ENS IDENTITY <b>+</b> SIGNED REQUESTS <b>+</b> ONCHAIN SETTLEMENT <b>+</b>";
+
+function ticker(): string {
+  return `<section class="ticker" aria-label="Product principles"><div class="ticker-track"><div class="ticker-line">${tickerLine}</div><div class="ticker-line" aria-hidden="true">${tickerLine}</div></div></section>`;
+}
+
 export function landingPage(apkDownloadUrl: string): string {
   return document(
     "Tap - Payments at the pace of a tap",
@@ -35,7 +42,7 @@ export function landingPage(apkDownloadUrl: string): string {
         <div class="hero-copy">
           <p class="eyebrow"><span></span> ETHGLOBAL TOKYO 2026</p>
           <h1>The cash register is already in your pocket.</h1>
-          <p class="hero-lede">Tap turns an Android phone into a payment terminal for Japan's cash-first merchants. One amount. One tap. One verified identity.</p>
+          <p class="hero-lede">Tap turns an Android phone into a verified payment terminal for merchants anywhere. Inspired by Japan's tap-first culture, shaped for markets like Kenya, and built for a global checkout.</p>
           <div class="hero-actions">${downloadLink(apkDownloadUrl)}<a class="text-link" href="#how">See how it works <span aria-hidden="true">&darr;</span></a></div>
           <p class="demo-note">Android preview build <span>/</span> Base Sepolia <span>/</span> USDC</p>
         </div>
@@ -50,7 +57,7 @@ export function landingPage(apkDownloadUrl: string): string {
           <p class="vertical-label">TAP / PAY / DONE</p>
         </div>
       </section>
-      <section class="ticker" aria-label="Product principles"><div>NO CARD READER <b>+</b> LIVE ENS IDENTITY <b>+</b> SIGNED REQUESTS <b>+</b> ONCHAIN SETTLEMENT <b>+</b> NO CARD READER <b>+</b></div></section>
+      ${ticker()}
       <section class="steps wrap" id="how">
         <div class="section-heading"><p class="eyebrow"><span></span> THREE MOVES</p><h2>From price to paid.<br>Nothing in between.</h2></div>
         <ol>
@@ -63,10 +70,10 @@ export function landingPage(apkDownloadUrl: string): string {
         <div class="trust-copy"><p class="eyebrow light"><span></span> TRUST THE NAME</p><h2>Know the merchant.<br>Before the money moves.</h2><p>A payment link is untrusted input. Tap does not rely on the tag for identity or token details. The customer app verifies the signed request and resolves the merchant's live <code>.tap.eth</code> name first.</p><a href="https://github.com/gitaugakwa/tap" class="text-link light">Read the open source code <span aria-hidden="true">&nearr;</span></a></div>
         <div class="verify-card"><div class="verify-head"><span>IDENTITY CHECK</span><i>LIVE</i></div><div class="verify-name"><span class="merchant-avatar">T</span><span><b>Takoyaki Stand</b><small>yoyogi-market.tap.eth</small></span></div><ul><li><i></i>Direct subname of tap.eth <b>PASS</b></li><li><i></i>ENS owner matches signer <b>PASS</b></li><li><i></i>Request is signed and current <b>PASS</b></li></ul><div class="verified-stamp">VERIFIED TO PAY</div></div>
       </div></section>
-      <section class="builder wrap"><div><p class="eyebrow"><span></span> BUILT AS AN SDK</p><h2>Payment rails<br>for the next counter.</h2></div><div><p>Tap is more than a demo app. Its protocol, verification, payment, and NFC layers are packaged for other teams to build with.</p><div class="packages"><code>@tap/core</code><code>@tap/react-native</code></div></div></section>
+      <section class="builder wrap"><div><p class="eyebrow"><span></span> BUILT AS AN SDK</p><h2>Payment rails<br>for the next counter.</h2></div><div><p>Tap is more than a demo app. Its protocol, verification, payment, and NFC layers are packaged for other teams to build with.</p><div class="packages"><a class="package-link" href="https://github.com/gitaugakwa/tap/tree/main/packages/core"><span><code>@tap/core</code><small>Protocol, identity, and settlement</small></span><b aria-hidden="true">&nearr;</b></a><a class="package-link" href="https://github.com/gitaugakwa/tap/tree/main/packages/react-native"><span><code>@tap/react-native</code><small>NFC transport and payment hooks</small></span><b aria-hidden="true">&nearr;</b></a></div></div></section>
       <section class="final-cta wrap"><p>YOUR NEXT PAYMENT</p><h2>Make it a tap.</h2>${downloadLink(apkDownloadUrl)}<div class="orb"></div></section>
     </main>
-    <footer class="wrap"><a class="brand" href="/"><span class="brand-mark">T</span><span>TAP</span></a><p>Built in Tokyo for the merchants still waiting on better tools.</p><p>&copy; 2026 TAP</p></footer>`,
+    <footer class="wrap"><a class="brand" href="/"><span class="brand-mark">T</span><span>TAP</span></a><p>Tap in. Get paid.</p><p>&copy; 2026 TAP</p></footer>`,
   );
 }
 
