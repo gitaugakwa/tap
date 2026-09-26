@@ -9,6 +9,11 @@ const config: ExpoConfig = {
   icon: "./assets/icon.png",
   backgroundColor: "#171713",
   userInterfaceStyle: "dark",
+  extra: {
+    eas: {
+      projectId: "4fc1344e-2791-4e44-9b7f-9f32b91be6dc",
+    },
+  },
   plugins: [
     "expo-router",
     "expo-secure-store",
