@@ -18,6 +18,7 @@
     "ens:setup": "bun run scripts/setup-ens.ts",
     "ens:register": "bun run scripts/register-merchant.ts",
     "ens:check": "bun run scripts/check-ens.ts",
+    "e2e": "bun run scripts/e2e.ts",
     "hooks:install": "git config core.hooksPath .githooks",
     "postinstall": "bun run apps/mobile/scripts/prepare-hce.ts"
   },

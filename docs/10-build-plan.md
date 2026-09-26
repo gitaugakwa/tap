@@ -69,7 +69,7 @@ Every task below lists: owner · depends on · the docs to read · acceptance cr
 **Commits:** `feat(core): add isUnderParent with normalization` → `feat(core): add resolveMerchant, getMerchantProfile, checkMerchantSetup` → `feat(core): add verifyRequest offline checks` → `feat(core): add ENS checks to verifyRequest`
 
 ### S8 · Live e2e · depends: S5, S7 · H6–H7
-**Accept:** `bun run e2e` passes: sign → encode → decode → verify (real ENS, `e2e-merchant.tap.eth`) → payWithPermit → isPaid → replay rejected (`already_paid`) → tampered URL rejected → live `hashRequest` parity. **P1–P4 become protected.**
+**Accept:** `bun run e2e` passes: sign → encode → decode → verify (real ENS, `e2e-merchant.tap.eth`) → payWithPermit → isPaid → replay rejected (`already_paid`) → tampered URL rejected → live `hashRequest` parity. **P1–P3 become protected.** P4 becomes protected during J1, once the phone-owned `yoyogi-market.tap.eth` name also resolves.
 **Commit:** `test(scripts): add live end-to-end payment script`
 
 ### S9 · Integration support · H7–H9 · with the Flow track (J1)
