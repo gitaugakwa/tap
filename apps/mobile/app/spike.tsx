@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { HCESession, NFCTagType4, NFCTagType4NDEFContentType } from "react-native-hce";
-import NfcManager, { Ndef, NfcTech } from "react-native-nfc-manager";
+import NfcManager, { Ndef, NfcAdapter, NfcTech } from "react-native-nfc-manager";
 
 const SPIKE_URL = "https://tap.xyz/p?v=1&test=1";
+const READ_TIMEOUT_MS = 30_000;
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown NFC error";
@@ -11,14 +12,19 @@ function errorMessage(error: unknown) {
 
 export default function NfcSpikeScreen() {
   const sessionRef = useRef<HCESession | null>(null);
+  const mountedRef = useRef(true);
   const [isServing, setIsServing] = useState(false);
   const [isReading, setIsReading] = useState(false);
   const [status, setStatus] = useState("Ready");
   const [readUrl, setReadUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      void sessionRef.current?.setEnabled(false).catch(() => undefined);
+      mountedRef.current = false;
+      const session = sessionRef.current;
+      sessionRef.current = null;
+      void session?.setEnabled(false).catch(() => undefined);
       void NfcManager.cancelTechnologyRequest({ throwOnError: false });
     };
   }, []);
@@ -27,11 +33,17 @@ export default function NfcSpikeScreen() {
     try {
       const session = sessionRef.current ?? (await HCESession.getInstance());
       sessionRef.current = session;
+      if (!mountedRef.current) {
+        await session.setEnabled(false);
+        return;
+      }
 
       if (isServing) {
         await session.setEnabled(false);
-        setIsServing(false);
-        setStatus("HCE stopped");
+        if (mountedRef.current) {
+          setIsServing(false);
+          setStatus("HCE stopped");
+        }
         return;
       }
 
@@ -42,11 +54,23 @@ export default function NfcSpikeScreen() {
           writable: false,
         }),
       );
+      if (!mountedRef.current) {
+        await session.setEnabled(false);
+        return;
+      }
+
       await session.setEnabled(true);
+      if (!mountedRef.current) {
+        await session.setEnabled(false);
+        return;
+      }
+
       setIsServing(true);
       setStatus("HCE serving the test URL");
     } catch (error) {
-      setStatus(`HCE error: ${errorMessage(error)}`);
+      if (mountedRef.current) {
+        setStatus(`HCE error: ${errorMessage(error)}`);
+      }
     }
   }
 
@@ -54,10 +78,23 @@ export default function NfcSpikeScreen() {
     setIsReading(true);
     setReadUrl(null);
     setStatus("Hold this phone near the HCE phone");
+    let didTimeout = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
 
     try {
       await NfcManager.start();
-      await NfcManager.requestTechnology(NfcTech.Ndef);
+      if (!mountedRef.current) {
+        return;
+      }
+
+      timeout = setTimeout(() => {
+        didTimeout = true;
+        void NfcManager.cancelTechnologyRequest({ throwOnError: false });
+      }, READ_TIMEOUT_MS);
+      await NfcManager.requestTechnology(NfcTech.Ndef, {
+        isReaderModeEnabled: true,
+        readerModeFlags: NfcAdapter.FLAG_READER_NFC_A,
+      });
       const tag = await NfcManager.getTag();
       const record = tag?.ndefMessage?.[0];
       if (!record) {
@@ -65,13 +102,24 @@ export default function NfcSpikeScreen() {
       }
 
       const url = Ndef.uri.decodePayload(Uint8Array.from(record.payload));
-      setReadUrl(url);
-      setStatus("Tag read successfully");
+      if (mountedRef.current) {
+        setReadUrl(url);
+        setStatus("Tag read successfully");
+      }
     } catch (error) {
-      setStatus(`Read error: ${errorMessage(error)}`);
+      if (mountedRef.current) {
+        setStatus(
+          didTimeout ? "Read timed out after 30 seconds" : `Read error: ${errorMessage(error)}`,
+        );
+      }
     } finally {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
       await NfcManager.cancelTechnologyRequest({ throwOnError: false });
-      setIsReading(false);
+      if (mountedRef.current) {
+        setIsReading(false);
+      }
     }
   }
 
