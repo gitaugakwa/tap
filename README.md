@@ -49,11 +49,12 @@ requests and emits a `Paid` event tied to the exact merchant nonce.
 
 Relevant implementation:
 
-- [`TapMerchantRegistrar.register`](contracts/src/TapMerchantRegistrar.sol)
-- [ENS merchant resolution](packages/core/src/verify/ens.ts)
-- [Ordered request verification](packages/core/src/verify/verify-request.ts)
-- [Idempotent ENS setup and EAC grants](scripts/setup-ens.ts)
-- [Live ENS check](scripts/check-ens.ts)
+- [`TapMerchantRegistrar.register`](contracts/src/TapMerchantRegistrar.sol#L68-L105)
+- [ENS merchant resolution](packages/core/src/verify/ens.ts#L27-L70)
+- [Ordered request verification](packages/core/src/verify/verify-request.ts#L108-L167)
+- [Idempotent ENS setup and EAC grants](scripts/setup-ens.ts#L236-L278)
+- [Live ENS check](scripts/check-ens.ts#L12-L47)
+- [Funded end-to-end payment](scripts/e2e.ts#L61-L134)
 
 ## Architecture
 
@@ -85,6 +86,8 @@ configuration lives in [`packages/core/src/config/chains.ts`](packages/core/src/
 
 TapPay deployment transaction:
 [`0x5139...69d2`](https://sepolia.basescan.org/tx/0x5139eadb16cae193bca62c9d9f0098927b826742bfbc7014a84b3e79c93769d2).
+Latest protected P3 payment:
+[`0xbe61...c53a`](https://sepolia.basescan.org/tx/0xbe61a3aaea39b053e458d5aae479dd7eac3a184efe13c1b2a3520c743a94c53a).
 
 `e2e-merchant.tap.eth` resolves publicly to the configured test merchant and carries the text
 record `name = E2E Test Merchant`. The phone-owned `yoyogi-market.tap.eth` name is registered
@@ -102,16 +105,17 @@ bun run check
 The gate runs architecture enforcement, formatting/linting, TypeScript checks, SDK tests,
 Foundry tests, and generated-ABI drift detection.
 
-For live checks, create `.env` from [`.env.example`](.env.example), configure both RPC URLs and
-the four test keys, then fund the customer with Base Sepolia ETH and USDC.
+For the live SDK path, create `.env` from [`.env.example`](.env.example), configure both RPC URLs
+and the four test keys, then fund the customer with Base Sepolia ETH and USDC.
 
 ```bash
-bun run ens:check
+bun run e2e
 ```
 
-After the S7/S8 verification and end-to-end integration branch lands, `bun run e2e` submits a
-real `$0.01` USDC payment. It checks live ENS resolution, signature and URL roundtrip, tamper
-rejection, SDK/contract hash parity, settlement, `isPaid`, and replay rejection.
+This submits a real `$0.01` USDC payment. It checks live ENS resolution, signature and URL
+roundtrip, tamper rejection, SDK/contract hash parity, settlement, `isPaid`, and replay rejection.
+After registering the merchant phone during J1, `bun run ens:check` verifies both demo names and
+their display records through the public ENS path.
 
 ## Run the Android demo
 
