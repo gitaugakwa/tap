@@ -54,6 +54,12 @@ export function useTapToPay({
   const stateRef = useRef<PayState>("idle");
   const signedRef = useRef<SignedRequest | undefined>(undefined);
   const operationRef = useRef(0);
+  const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  function clearExpiryTimer() {
+    if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+    expiryTimerRef.current = undefined;
+  }
 
   function transition(action: PayMachineAction) {
     stateRef.current = payReducer({ state: stateRef.current }, action).state;
@@ -61,6 +67,7 @@ export function useTapToPay({
   }
 
   function clearResult() {
+    clearExpiryTimer();
     signedRef.current = undefined;
     setVerify(undefined);
     setSigned(undefined);
@@ -71,6 +78,8 @@ export function useTapToPay({
   useEffect(
     () => () => {
       operationRef.current += 1;
+      if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
+      expiryTimerRef.current = undefined;
       void cancelRead();
     },
     [],
@@ -78,8 +87,17 @@ export function useTapToPay({
 
   async function verifyUrl(url: string, operation: number) {
     transition({ type: "SUBMIT" });
+    let decoded: SignedRequest;
     try {
-      const decoded = core.decodeRequestUrl(url);
+      decoded = core.decodeRequestUrl(url);
+    } catch {
+      if (operation !== operationRef.current) return;
+      setVerify({ ok: false, reason: "malformed" });
+      transition({ type: "REJECTED" });
+      return;
+    }
+
+    try {
       const result = await core.verifyRequest(decoded);
       if (operation !== operationRef.current) return;
 
@@ -91,6 +109,17 @@ export function useTapToPay({
       signedRef.current = decoded;
       setSigned(decoded);
       transition({ type: "VERIFIED" });
+      expiryTimerRef.current = setTimeout(
+        () => {
+          if (operation !== operationRef.current || stateRef.current !== "verified") return;
+          operationRef.current += 1;
+          signedRef.current = undefined;
+          setSigned(undefined);
+          setVerify({ ok: false, reason: "expired" });
+          transition({ type: "REJECTED" });
+        },
+        Math.max(0, result.expiresAt.getTime() - Date.now()),
+      );
     } catch (cause) {
       if (operation !== operationRef.current) return;
       setError(describeError(cause));
@@ -132,6 +161,7 @@ export function useTapToPay({
     if (stateRef.current !== "verified" || !request) return;
 
     const operation = ++operationRef.current;
+    clearExpiryTimer();
     setError(undefined);
     transition({ type: "CONFIRM" });
     try {
