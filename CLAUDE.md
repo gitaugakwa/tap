@@ -203,13 +203,13 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 
 **SDK track**
 - [ ] S1 `tap.eth` registered (or `tappay.eth` + decision)
-- [ ] S2 `TapPay.sol` + tests + hash vector
-- [ ] S3 core request layer
+- [x] S2 `TapPay.sol` + tests + hash vector
+- [x] S3 core request layer
 - [x] S4 TapPay deployed → `chains.ts` + `abi.ts`
 - [x] S5 core payment layer
-- [ ] S6 registrar + ENS setup + `e2e-merchant.tap.eth`
-- [ ] S7 core verification
-- [ ] S8 live e2e green
+- [x] S6 registrar + ENS setup + `e2e-merchant.tap.eth`
+- [x] S7 core verification
+- [x] S8 live e2e green
 - [ ] S10 README + ENS write-up
 
 **Flow track**
@@ -226,4 +226,4 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 - [ ] J3 submitted
 
 **Protected flows** (once green, must stay green)
-- [ ] P1 contracts · [ ] P2 core unit · [ ] P3 live e2e · [ ] P4 live ENS · [ ] P5 NFC phones · [ ] P6 QR phones · [ ] P7 tamper blocked
+- [x] P1 contracts · [x] P2 core unit · [x] P3 live e2e · [ ] P4 live ENS · [ ] P5 NFC phones · [ ] P6 QR phones · [ ] P7 tamper blocked
