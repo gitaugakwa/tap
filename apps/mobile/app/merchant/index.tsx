@@ -3,13 +3,16 @@ import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AmountPad } from "../../src/components/AmountPad";
+import { SetupBanner } from "../../src/components/SetupBanner";
 import { copy } from "../../src/copy";
 import { useSettings } from "../../src/settings-store";
 import { theme } from "../../src/theme";
+import { useWallet } from "../../src/wallet/WalletProvider";
 
 export default function MerchantAmountScreen() {
   const router = useRouter();
   const [settings] = useSettings();
+  const { address } = useWallet();
   const [input, setInput] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
 
@@ -34,6 +37,8 @@ export default function MerchantAmountScreen() {
           ⚙︎
         </Link>
       </View>
+
+      {address ? <SetupBanner merchantName={settings.merchantName} address={address} /> : null}
 
       <Text style={styles.amount}>${display}</Text>
 
