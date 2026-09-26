@@ -1,15 +1,26 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import { type Address, type PublicClient, zeroAddress } from "viem";
+import { afterEach, describe, expect, mock, test } from "bun:test";
+import {
+  type Address,
+  type Hash,
+  type LocalAccount,
+  type PublicClient,
+  type WalletClient,
+  zeroAddress,
+} from "viem";
 import { configureTap } from "../../src/config/clients";
 import {
   checkMerchantSetup,
   getMerchantProfile,
+  isMerchantLabelAvailable,
   isUnderParent,
+  registerMerchant,
   resolveMerchant,
 } from "../../src/verify/ens";
 
 const merchant = "0x1111111111111111111111111111111111111111" as Address;
 const stranger = "0x2222222222222222222222222222222222222222" as Address;
+const transaction = `0x${"a".repeat(64)}` as Hash;
+const account = { address: merchant } as LocalAccount;
 
 function ensClient(options: {
   address?: Address | null;
@@ -122,5 +133,125 @@ describe("checkMerchantSetup", () => {
       ok: false,
       reason: "network_error",
     });
+  });
+});
+
+describe("merchant registration", () => {
+  test("checks availability through the configured registrar client", async () => {
+    const readContract = mock(async (_request: unknown) => true);
+    configureTap({ ensClient: { readContract } as unknown as PublicClient });
+
+    await expect(isMerchantLabelAvailable("yoyogi-market")).resolves.toBe(true);
+    expect(readContract).toHaveBeenCalledTimes(1);
+    expect(readContract.mock.calls[0]?.[0]).toMatchObject({
+      functionName: "isAvailable",
+      args: ["yoyogi-market"],
+    });
+  });
+
+  test.each(["ab", "Uppercase", "-edge", "edge-", "has space", "a".repeat(33)])(
+    "rejects invalid label %s before an RPC call",
+    async (label) => {
+      const readContract = mock(async (_request: unknown) => true);
+      configureTap({ ensClient: { readContract } as unknown as PublicClient });
+
+      await expect(isMerchantLabelAvailable(label)).rejects.toMatchObject({
+        code: "invalid_label",
+      });
+      expect(readContract).not.toHaveBeenCalled();
+    },
+  );
+
+  test("simulates, sends, and confirms a registration", async () => {
+    const request = { test: "registration request" };
+    const readContract = mock(async (_request: unknown) => true);
+    const simulateContract = mock(async (_request: unknown) => ({ request }));
+    const waitForTransactionReceipt = mock(async () => ({ status: "success" as const }));
+    const writeContract = mock(async () => transaction);
+    configureTap({
+      ensClient: {
+        readContract,
+        simulateContract,
+        waitForTransactionReceipt,
+      } as unknown as PublicClient,
+      ensWalletClient: { writeContract } as unknown as WalletClient,
+    });
+
+    await expect(
+      registerMerchant(
+        { label: "yoyogi-market", displayName: "Yoyogi Market", owner: merchant },
+        account,
+      ),
+    ).resolves.toBe(transaction);
+    expect(simulateContract.mock.calls[0]?.[0]).toMatchObject({
+      functionName: "register",
+      args: ["yoyogi-market", merchant, "Yoyogi Market"],
+      account,
+    });
+    expect(writeContract).toHaveBeenCalledWith(request);
+    expect(waitForTransactionReceipt).toHaveBeenCalledWith({
+      hash: transaction,
+      confirmations: 1,
+    });
+  });
+
+  test("rejects a taken name before simulation", async () => {
+    const simulateContract = mock(async (_request: unknown) => ({ request: {} }));
+    configureTap({
+      ensClient: {
+        readContract: async () => false,
+        simulateContract,
+      } as unknown as PublicClient,
+    });
+
+    await expect(
+      registerMerchant(
+        { label: "yoyogi-market", displayName: "Yoyogi Market", owner: merchant },
+        account,
+      ),
+    ).rejects.toMatchObject({ code: "name_taken" });
+    expect(simulateContract).not.toHaveBeenCalled();
+  });
+
+  test("rejects owner mismatch and invalid display names before an RPC call", async () => {
+    const readContract = mock(async (_request: unknown) => true);
+    configureTap({ ensClient: { readContract } as unknown as PublicClient });
+
+    await expect(
+      registerMerchant(
+        { label: "yoyogi-market", displayName: "Yoyogi Market", owner: stranger },
+        account,
+      ),
+    ).rejects.toMatchObject({ code: "owner_mismatch" });
+    await expect(
+      registerMerchant({ label: "yoyogi-market", displayName: "", owner: merchant }, account),
+    ).rejects.toMatchObject({ code: "invalid_display_name" });
+    await expect(
+      registerMerchant(
+        { label: "yoyogi-market", displayName: "é".repeat(33), owner: merchant },
+        account,
+      ),
+    ).rejects.toMatchObject({ code: "invalid_display_name" });
+    expect(readContract).not.toHaveBeenCalled();
+  });
+
+  test("reports a reverted confirmed transaction", async () => {
+    configureTap({
+      ensClient: {
+        readContract: async () => true,
+        simulateContract: async () => ({ request: {} }),
+        waitForTransactionReceipt: async () => ({ status: "reverted" }),
+      } as unknown as PublicClient,
+      ensWalletClient: {
+        writeContract: async () => transaction,
+      } as unknown as WalletClient,
+    });
+
+    await expect(
+      registerMerchant(
+        { label: "yoyogi-market", displayName: "Yoyogi Market", owner: merchant },
+        account,
+      ),
+    ).rejects.toMatchObject({ code: "registration_reverted" });
   });
 });

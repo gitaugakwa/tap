@@ -73,6 +73,7 @@ export type TapConfig = {
   paymentClient?: PublicClient;
   paymentWalletClient?: WalletClient;
   ensClient?: PublicClient;
+  ensWalletClient?: WalletClient;
   now?: () => Date;
 };
 

@@ -1,15 +1,22 @@
 import {
   type Address,
+  BaseError,
+  ContractFunctionRevertedError,
   getAddress,
   type Hash,
+  InsufficientFundsError,
   isAddressEqual,
   type LocalAccount,
+  size,
+  stringToHex,
   zeroAddress,
 } from "viem";
 import { normalize } from "viem/ens";
-import { ENS_PARENT } from "../config/chains";
-import { getEnsClient } from "../config/clients";
+import { tapMerchantRegistrarAbi } from "../config/abi";
+import { ENS_PARENT, ensConfig } from "../config/chains";
+import { getEnsClient, getEnsWalletClient } from "../config/clients";
 import { ENS_DISPLAY_NAME_KEY } from "../config/constants";
+import { TapError, TapInputError } from "../errors";
 import type { MerchantProfile, MerchantSetupCheck } from "../types";
 
 const LABEL_PATTERN = /^[a-z0-9-]+$/;
@@ -70,13 +77,112 @@ export async function checkMerchantSetup(
   }
 }
 
-export function registerMerchant(
-  _options: { label: string; displayName: string; owner: Address },
-  _account: LocalAccount,
-): Promise<Hash> {
-  throw new Error("not implemented: registerMerchant");
+function isValidLabel(label: string): boolean {
+  return (
+    label.length >= 3 &&
+    label.length <= 32 &&
+    !label.startsWith("-") &&
+    !label.endsWith("-") &&
+    LABEL_PATTERN.test(label)
+  );
 }
 
-export function isMerchantLabelAvailable(_label: string): Promise<boolean> {
-  throw new Error("not implemented: isMerchantLabelAvailable");
+function validateRegistration(
+  options: { label: string; displayName: string; owner: Address },
+  account: LocalAccount,
+): void {
+  if (!isValidLabel(options.label)) {
+    throw new TapInputError(
+      "invalid_label",
+      "Merchant label must be 3-32 lowercase letters, numbers, or hyphens",
+    );
+  }
+  const displayNameLength = size(stringToHex(options.displayName));
+  if (displayNameLength < 1 || displayNameLength > 64) {
+    throw new TapInputError("invalid_display_name", "Display name must be 1-64 bytes");
+  }
+  if (!isAddressEqual(options.owner, account.address)) {
+    throw new TapInputError("owner_mismatch", "Merchant owner must match the signing account");
+  }
+}
+
+function mapRegistrationError(error: unknown): TapError {
+  if (error instanceof TapError) return error;
+
+  if (error instanceof BaseError) {
+    const reverted = error.walk((cause) => cause instanceof ContractFunctionRevertedError);
+    if (reverted instanceof ContractFunctionRevertedError) {
+      if (reverted.data?.errorName === "NameNotAvailable") {
+        return new TapError("name_taken", "Merchant name is already registered", { cause: error });
+      }
+      return new TapError("registration_reverted", "Merchant registration was rejected", {
+        cause: error,
+      });
+    }
+
+    if (error.walk((cause) => cause instanceof InsufficientFundsError)) {
+      return new TapError("registration_insufficient_gas", "Not enough Sepolia ETH for gas", {
+        cause: error,
+      });
+    }
+    return new TapError("registration_network", "ENS network request failed", { cause: error });
+  }
+
+  return new TapError("registration_failed", "Merchant registration failed", {
+    cause: error instanceof Error ? error : undefined,
+  });
+}
+
+export async function registerMerchant(
+  options: { label: string; displayName: string; owner: Address },
+  account: LocalAccount,
+): Promise<Hash> {
+  validateRegistration(options, account);
+
+  try {
+    const client = getEnsClient();
+    const available = await client.readContract({
+      address: ensConfig.merchantRegistrar,
+      abi: tapMerchantRegistrarAbi,
+      functionName: "isAvailable",
+      args: [options.label],
+    });
+    if (!available) throw new TapError("name_taken", "Merchant name is already registered");
+
+    const { request } = await client.simulateContract({
+      address: ensConfig.merchantRegistrar,
+      abi: tapMerchantRegistrarAbi,
+      functionName: "register",
+      args: [options.label, options.owner, options.displayName],
+      account,
+    });
+    const hash = await getEnsWalletClient(account).writeContract(request);
+    const receipt = await client.waitForTransactionReceipt({ hash, confirmations: 1 });
+    if (receipt.status !== "success") {
+      throw new TapError("registration_reverted", "Merchant registration reverted");
+    }
+    return hash;
+  } catch (error) {
+    throw mapRegistrationError(error);
+  }
+}
+
+export async function isMerchantLabelAvailable(label: string): Promise<boolean> {
+  if (!isValidLabel(label)) {
+    throw new TapInputError(
+      "invalid_label",
+      "Merchant label must be 3-32 lowercase letters, numbers, or hyphens",
+    );
+  }
+
+  try {
+    return await getEnsClient().readContract({
+      address: ensConfig.merchantRegistrar,
+      abi: tapMerchantRegistrarAbi,
+      functionName: "isAvailable",
+      args: [label],
+    });
+  } catch (error) {
+    throw mapRegistrationError(error);
+  }
 }
