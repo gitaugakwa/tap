@@ -366,9 +366,9 @@ export const tapMerchantRegistrarAbi = [
         internalType: "contract ITapResolver",
       },
       {
-        name: "parentNode",
-        type: "bytes32",
-        internalType: "bytes32",
+        name: "parentDns_",
+        type: "bytes",
+        internalType: "bytes",
       },
     ],
     stateMutability: "nonpayable",
@@ -453,19 +453,6 @@ export const tapMerchantRegistrarAbi = [
   },
   {
     type: "function",
-    name: "PARENT_NODE",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
     name: "REGISTRY",
     inputs: [],
     outputs: [
@@ -486,6 +473,25 @@ export const tapMerchantRegistrarAbi = [
         name: "",
         type: "address",
         internalType: "contract ITapResolver",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "dnsNameOf",
+    inputs: [
+      {
+        name: "label",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes",
+        internalType: "bytes",
       },
     ],
     stateMutability: "view",
@@ -530,19 +536,13 @@ export const tapMerchantRegistrarAbi = [
   },
   {
     type: "function",
-    name: "nodeOf",
-    inputs: [
-      {
-        name: "label",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    name: "parentDns",
+    inputs: [],
     outputs: [
       {
         name: "",
-        type: "bytes32",
-        internalType: "bytes32",
+        type: "bytes",
+        internalType: "bytes",
       },
     ],
     stateMutability: "view",

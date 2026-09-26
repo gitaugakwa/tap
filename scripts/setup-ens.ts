@@ -85,6 +85,19 @@ if (!label) throw new Error(`ENS_PARENT is malformed: ${ENS_PARENT}`);
 const labelHash = BigInt(keccak256(toHex(label)));
 const parentNode = namehash(ENS_PARENT);
 
+/// DNS wire format: one length byte per label, null-terminated. The deployed
+/// resolver keys records by this, not by a namehash (D28).
+function dnsEncode(name: string): `0x${string}` {
+  let out = "";
+  for (const part of name.split(".")) {
+    out += part.length.toString(16).padStart(2, "0");
+    out += Buffer.from(part, "utf8").toString("hex");
+  }
+  return `0x${out}00`;
+}
+
+const parentDns = dnsEncode(ENS_PARENT);
+
 async function waitFor(hash: `0x${string}`, what: string): Promise<void> {
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (receipt.status !== "success") throw new Error(`${what} reverted (tx ${hash})`);
@@ -204,7 +217,7 @@ if (registrar === zeroAddress || !(await hasCode(registrar))) {
   const deployHash = await walletClient.deployContract({
     abi: artifact.abi,
     bytecode: artifact.bytecode.object as `0x${string}`,
-    args: [userRegistry, resolver, parentNode],
+    args: [userRegistry, resolver, parentDns],
   });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: deployHash });
   if (receipt.status !== "success") throw new Error(`registrar deploy reverted (tx ${deployHash})`);

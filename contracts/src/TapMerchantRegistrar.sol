@@ -38,13 +38,13 @@ contract TapMerchantRegistrar {
     IPermissionedRegistry public immutable REGISTRY;
     /// @notice Our PermissionedResolver.
     ITapResolver public immutable RESOLVER;
-    /// @notice The namehash of the parent name, e.g. namehash("tap.eth").
-    bytes32 public immutable PARENT_NODE;
+    /// @notice The DNS-encoded parent name, e.g. "tap.eth" as \x03tap\x03eth\x00.
+    bytes public parentDns;
 
-    constructor(IPermissionedRegistry registry, ITapResolver resolver, bytes32 parentNode) {
+    constructor(IPermissionedRegistry registry, ITapResolver resolver, bytes memory parentDns_) {
         REGISTRY = registry;
         RESOLVER = resolver;
-        PARENT_NODE = parentNode;
+        parentDns = parentDns_;
     }
 
     /// @notice Whether `label` can still be registered.
@@ -54,10 +54,10 @@ contract TapMerchantRegistrar {
         return state.status == IPermissionedRegistry.Status.AVAILABLE;
     }
 
-    /// @notice The namehash of `label` under the parent name.
-    /// @dev Child namehash per EIP-137: keccak256(parentNode ++ labelhash).
-    function nodeOf(string calldata label) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(PARENT_NODE, keccak256(bytes(label))));
+    /// @notice The DNS-encoded form of `label` under the parent name.
+    /// @dev One length byte, the label, then the already-encoded parent.
+    function dnsNameOf(string calldata label) public view returns (bytes memory) {
+        return abi.encodePacked(uint8(bytes(label).length), label, parentDns);
     }
 
     /// @notice Register `label` to `owner` and write its records.
@@ -86,9 +86,9 @@ contract TapMerchantRegistrar {
             type(uint64).max
         );
 
-        bytes32 node = nodeOf(label);
-        RESOLVER.setAddr(node, COIN_TYPE_ETH, abi.encodePacked(owner));
-        RESOLVER.setText(node, DISPLAY_NAME_KEY, displayName);
+        bytes memory dnsName = dnsNameOf(label);
+        RESOLVER.setAddress(dnsName, COIN_TYPE_ETH, abi.encodePacked(owner));
+        RESOLVER.setText(dnsName, DISPLAY_NAME_KEY, displayName);
 
         emit MerchantRegistered(tokenId, label, owner, displayName);
     }

@@ -13,13 +13,12 @@ import {MockPermissionedRegistry} from "./mocks/MockPermissionedRegistry.sol";
 import {MockTapResolver} from "./mocks/MockTapResolver.sol";
 
 contract TapMerchantRegistrarTest is Test {
-    /// @dev namehash("tap.eth"), computed with viem and cross-checked against its
-    ///      own namehash() helper.
-    bytes32 internal constant PARENT_NODE =
-        0x2761d081665f4bf315f9cd14c4cc1396e527b6d04d11590b8c5eb8514da4fd92;
-    /// @dev namehash("yoyogi-market.tap.eth"), same source.
-    bytes32 internal constant YOYOGI_NODE =
-        0x8f11487adbad09ee53757ab9520f7cb6488091c0d72af10bb165908472f1fb91;
+    /// @dev DNS-encoded "tap.eth": one length byte per label, null-terminated. This is
+    ///      the form the resolver deployed on Sepolia takes (D28).
+    bytes internal constant PARENT_DNS = hex"037461700365746800";
+    /// @dev DNS-encoded "yoyogi-market.tap.eth". This exact vector is in docs/03 and
+    ///      was reproduced independently here.
+    bytes internal constant YOYOGI_DNS = hex"0d796f796f67692d6d61726b6574037461700365746800";
 
     string internal constant LABEL = "yoyogi-market";
     string internal constant DISPLAY_NAME = "Takoyaki Stand";
@@ -38,7 +37,7 @@ contract TapMerchantRegistrarTest is Test {
         registry = new MockPermissionedRegistry();
         resolver = new MockTapResolver();
         registrar = new TapMerchantRegistrar(
-            IPermissionedRegistry(address(registry)), ITapResolver(address(resolver)), PARENT_NODE
+            IPermissionedRegistry(address(registry)), ITapResolver(address(resolver)), PARENT_DNS
         );
     }
 
@@ -66,27 +65,27 @@ contract TapMerchantRegistrarTest is Test {
         assertEq(roleBitmap, RegistryRolesLib.ROLE_SET_RESOLVER, "least privilege (D19)");
         assertEq(expiry, type(uint64).max, "never expires (D18)");
 
-        assertEq(resolver.setAddrCount(), 1, "one address record written");
-        assertEq(resolver.lastAddrNode(), YOYOGI_NODE, "address written against the child node");
+        assertEq(resolver.setAddressCount(), 1, "one address record written");
+        assertEq(resolver.lastAddrName(), YOYOGI_DNS, "address written against the child name");
         assertEq(resolver.lastCoinType(), 60, "ETH coin type");
         assertEq(resolver.lastAddressBytes(), abi.encodePacked(merchant), "owner's address");
 
         assertEq(resolver.setTextCount(), 1, "one text record written");
-        assertEq(resolver.lastTextNode(), YOYOGI_NODE, "text written against the child node");
+        assertEq(resolver.lastTextName(), YOYOGI_DNS, "text written against the child name");
         assertEq(resolver.lastTextKey(), "name", "display-name key (D17)");
         assertEq(resolver.lastTextValue(), DISPLAY_NAME, "display name");
     }
 
-    /// @dev Replaces docs/03's test_DnsEncoding: records are keyed by namehash, not by
-    ///      a DNS-encoded name (D27). Pins the EIP-137 child-namehash computation
-    ///      against a vector produced independently by viem.
-    function test_Namehash() public view {
-        assertEq(registrar.nodeOf(LABEL), YOYOGI_NODE, "child namehash matches viem");
-        assertEq(registrar.PARENT_NODE(), PARENT_NODE, "parent node stored as given");
+    /// @dev Pins the DNS encoding against docs/03's published vector. The live resolver
+    ///      keys records by this, not by a namehash (D28), so a regression here would
+    ///      silently write records nobody can resolve.
+    function test_DnsEncoding() public view {
+        assertEq(registrar.dnsNameOf(LABEL), YOYOGI_DNS, "matches the docs/03 vector");
+        assertEq(registrar.parentDns(), PARENT_DNS, "parent stored as given");
         assertEq(
-            registrar.nodeOf(LABEL),
-            keccak256(abi.encodePacked(PARENT_NODE, keccak256(bytes(LABEL)))),
-            "node is keccak256(parentNode ++ labelhash)"
+            registrar.dnsNameOf(LABEL),
+            abi.encodePacked(uint8(bytes(LABEL).length), LABEL, PARENT_DNS),
+            "one length byte, the label, then the parent"
         );
     }
 
@@ -158,7 +157,7 @@ contract TapMerchantRegistrarTest is Test {
         registrar.register(LABEL, address(0), DISPLAY_NAME);
 
         assertEq(registry.registerCount(), 0, "no registration attempted");
-        assertEq(resolver.setAddrCount(), 0, "no address record written");
+        assertEq(resolver.setAddressCount(), 0, "no address record written");
         assertEq(resolver.setTextCount(), 0, "no text record written");
     }
 }
