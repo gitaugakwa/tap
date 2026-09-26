@@ -12,7 +12,9 @@
     "typecheck": "bun run --filter '*' typecheck",
     "test": "bun test packages",
     "test:contracts": "cd contracts && forge test",
-    "check": "bun run arch && bun run lint && bun run typecheck && bun run test && bun run test:contracts",
+    "abi": "bun run scripts/generate-abi.ts",
+    "abi:check": "bun run abi && git diff --exit-code packages/core/src/config/abi.ts",
+    "check": "bun run arch && bun run lint && bun run typecheck && bun run test && bun run test:contracts && bun run abi:check",
     "hooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
