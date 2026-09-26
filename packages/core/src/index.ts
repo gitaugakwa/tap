@@ -15,7 +15,7 @@ export {
   TapInputError,
   TapPayError,
 } from "./errors";
-export { formatAmount, parseAmountInput } from "./format";
+export { formatAmount, formatTokenUnits, parseAmountInput } from "./format";
 export { isPaid, pay, payWithPermit, waitForPayment } from "./payment/pay";
 export { signPermit } from "./payment/permit";
 export { payWithSwap, quoteSwap } from "./payment/swap";

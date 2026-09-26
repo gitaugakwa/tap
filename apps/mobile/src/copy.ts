@@ -19,6 +19,10 @@ export type CopyErrorCode =
   | "charge_in_progress"
   | "transport_unknown"
   | "payment_reverted"
+  | "no_route"
+  | "invalid_quote"
+  | "invalid_slippage"
+  | "invalid_token"
   | "fallback";
 
 const errorMessages: Record<CopyErrorCode, string> = {
@@ -42,6 +46,10 @@ const errorMessages: Record<CopyErrorCode, string> = {
   charge_in_progress: "Another charge is already active.",
   transport_unknown: "Couldn't start this payment method. Use QR instead.",
   payment_reverted: "The payment was rejected onchain. No funds were moved.",
+  no_route: "No Uniswap route is available for this payment.",
+  invalid_quote: "This quote is no longer valid. Get a new quote and try again.",
+  invalid_slippage: "The selected price tolerance isn't supported.",
+  invalid_token: "This input token isn't supported for this payment.",
   fallback: "Something went wrong. Try again.",
 };
 
