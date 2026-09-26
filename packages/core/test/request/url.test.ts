@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { toHex } from "viem";
 import { DEFAULT_TOKEN, PAYMENT_CHAIN_ID } from "../../src/config/chains";
-import { TapDecodeError } from "../../src/errors";
+import { TapDecodeError, TapInputError } from "../../src/errors";
 import { decodeRequestUrl, encodeRequestUrl } from "../../src/request/url";
 import type { SignedRequest } from "../../src/types";
 
@@ -20,11 +20,26 @@ const signed: SignedRequest = {
 
 const encoded = encodeRequestUrl(signed);
 const requiredParams = ["v", "c", "m", "n", "t", "a", "x", "k", "s"] as const;
+const maxUint256 = (1n << 256n) - 1n;
+const maxUint64 = (1n << 64n) - 1n;
 
 function withParam(name: string, value: string): string {
   const url = new URL(encoded);
   url.searchParams.set(name, value);
   return url.toString();
+}
+
+function withByteLength(url: string, byteLength: number): string {
+  return `${url}&u=${"x".repeat(byteLength - new TextEncoder().encode(url).byteLength - 3)}`;
+}
+
+function compactWithWidths(amount: bigint, expiry: bigint): string {
+  const url = new URL(encoded);
+  url.searchParams.set("c", "0");
+  url.searchParams.set("n", "a");
+  url.searchParams.set("a", amount.toString());
+  url.searchParams.set("x", expiry.toString());
+  return url.toString().replace("https://tap.xyz", "x:");
 }
 
 describe("request URL codec", () => {
@@ -88,6 +103,51 @@ describe("request URL codec", () => {
     expect(decodeRequestUrl(withParam("n", "YOYOGI-MARKET.tap.eth")).request.merchantName).toBe(
       "yoyogi-market.tap.eth",
     );
+  });
+
+  test("accepts Solidity integer maxima", () => {
+    const maxAmountUrl = compactWithWidths(maxUint256, 0n);
+    const maxExpiryUrl = compactWithWidths(1n, maxUint64);
+
+    expect(new TextEncoder().encode(maxAmountUrl).byteLength).toBeLessThan(400);
+    expect(decodeRequestUrl(maxAmountUrl).request.amount).toBe(maxUint256);
+    expect(new TextEncoder().encode(maxExpiryUrl).byteLength).toBeLessThan(400);
+    expect(decodeRequestUrl(maxExpiryUrl).request.expiry).toBe(maxUint64);
+  });
+
+  test.each([
+    ["a", maxUint256 + 1n],
+    ["x", maxUint64 + 1n],
+  ])("rejects %s above its Solidity width", (param, value) => {
+    const compact = param === "a" ? compactWithWidths(value, 0n) : compactWithWidths(1n, value);
+    expect(new TextEncoder().encode(compact).byteLength).toBeLessThan(400);
+    expect(() => decodeRequestUrl(compact)).toThrow(TapDecodeError);
+  });
+
+  test("accepts 399 bytes and unknown parameters", () => {
+    expect(decodeRequestUrl(withByteLength(encoded, 399))).toEqual(signed);
+  });
+
+  test.each([[400], [401]])("rejects a %i-byte URL before parsing", (byteLength) => {
+    expect(() => decodeRequestUrl(withByteLength(encoded, byteLength))).toThrow(TapDecodeError);
+  });
+
+  test("encoder emits 399 bytes and rejects 400 bytes", () => {
+    const bytesNeeded = 400 - new TextEncoder().encode(encoded).byteLength;
+    const at399 = {
+      ...signed,
+      request: {
+        ...signed.request,
+        merchantName: `${signed.request.merchantName}${"x".repeat(bytesNeeded - 1)}`,
+      },
+    };
+    const at400 = {
+      ...at399,
+      request: { ...at399.request, merchantName: `${at399.request.merchantName}x` },
+    };
+
+    expect(new TextEncoder().encode(encodeRequestUrl(at399)).byteLength).toBe(399);
+    expect(() => encodeRequestUrl(at400)).toThrow(TapInputError);
   });
 
   test("uses a stable malformed error code", () => {
