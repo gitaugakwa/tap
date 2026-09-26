@@ -8,8 +8,15 @@ describe("public server", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-security-policy")).toContain("default-src 'self'");
-    expect(body).toContain("Payments, at the pace of a tap.");
+    expect(body).toContain("The cash register is already in your pocket.");
     expect(body).toContain(apkDownloadUrl);
+  });
+
+  test("serves the responsive stylesheet", async () => {
+    const response = await app.request("/styles.css");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/css");
+    expect(await response.text()).toContain("@media (max-width:800px)");
   });
 
   test("never renders unverified payment query data", async () => {
