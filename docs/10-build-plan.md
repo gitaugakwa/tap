@@ -127,8 +127,8 @@ Per `11-demo-and-submission.md` → Submission checklist.
 
 ---
 
-## Add-ons (only after P1–P7 are protected), in priority order
-Cut from the bottom. **Never cut the core loop.** Each add-on is its own branch and its own small commits, and must not break P1–P7.
+## Add-ons (only after P1–P7 are protected unless a decision says otherwise), in priority order
+Cut from the bottom. **Never cut the core loop.** Each add-on is its own branch and its own small commits, and must not break P1–P7. D27 pulls forward only A2's public landing page and safe app handoff; live web verification remains deferred.
 
 | # | Add-on | Owner | Notes |
 |---|---|---|---|
