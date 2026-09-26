@@ -1,15 +1,20 @@
+import type { TamperField } from "@tap/core/testing";
 import { useSyncExternalStore } from "react";
 
 export type AppSettings = {
   role: "merchant" | "customer" | null;
   merchantName: string;
   transport: "nfc" | "qr";
+  demoTamper: TamperField | null;
+  fakeChain: boolean;
 };
 
 export const defaultSettings: AppSettings = {
   role: null,
   merchantName: "yoyogi-market.tap.eth",
   transport: "nfc",
+  demoTamper: null,
+  fakeChain: false,
 };
 
 let state: AppSettings = defaultSettings;
