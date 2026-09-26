@@ -198,7 +198,7 @@ CUSTOMER_PK=        # e2e customer (Base Sepolia ETH + USDC)
 Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. When a protected flow first passes, tick it too.
 
 **Setup**
-- [ ] T0.1 Repo scaffold + stubs + gate + hooks + CI
+- [x] T0.1 Repo scaffold + stubs + gate + hooks + CI
 - [ ] T0.2 RPCs, EAS, phones, keys, funds
 
 **SDK track**
