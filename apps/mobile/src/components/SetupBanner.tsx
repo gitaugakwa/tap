@@ -42,7 +42,7 @@ export function SetupBanner({ merchantName, address }: { merchantName: string; a
   return (
     <View style={styles.warningBanner}>
       <Text style={styles.warningText}>{copy.getErrorMessage(check.reason)}</Text>
-      <Link href="/settings" style={styles.fixLink}>
+      <Link href="/merchant/register" style={styles.fixLink}>
         How to fix
       </Link>
     </View>

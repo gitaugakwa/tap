@@ -1,7 +1,8 @@
 import type { Address, WalletBalances } from "@tap/core";
 import { DEFAULT_TOKEN, getWalletBalances } from "@tap/core";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { faucetUrls, openFaucet } from "../faucets";
 import { useSettings } from "../settings-store";
 import { theme } from "../theme";
 
@@ -52,6 +53,14 @@ export function BalanceRow({ address }: { address: Address }) {
   }
 
   const usdc = balances.tokens.find((token) => token.symbol === "USDC");
+  const needsGas = balances.gas.amount === 0n;
+  const needsUsdc = usdc?.amount === 0n;
+
+  function fund(url: string) {
+    void openFaucet(url, address).catch(() => {
+      Alert.alert("Couldn't open faucet", "Your address was copied. Open the faucet in a browser.");
+    });
+  }
 
   return (
     <View style={styles.card}>
@@ -67,10 +76,33 @@ export function BalanceRow({ address }: { address: Address }) {
           <Text style={styles.assetValue}>{balances.gas.display}</Text>
         </View>
       </View>
-      {balances.gas.amount === 0n ? (
-        <Text style={styles.warning}>Add Base Sepolia ETH for gas</Text>
+      {needsGas ? (
+        <View style={styles.fundingRow}>
+          <Text style={styles.warning}>Add Base Sepolia ETH for gas</Text>
+          <Pressable
+            accessibilityRole="link"
+            hitSlop={8}
+            onPress={() => fund(faucetUrls.baseSepoliaEth)}
+          >
+            <Text style={styles.fundingLink}>Get test ETH</Text>
+          </Pressable>
+        </View>
       ) : null}
-      {usdc && usdc.amount === 0n ? <Text style={styles.warning}>Add USDC to pay</Text> : null}
+      {needsUsdc ? (
+        <View style={styles.fundingRow}>
+          <Text style={styles.warning}>Add USDC to pay</Text>
+          <Pressable
+            accessibilityRole="link"
+            hitSlop={8}
+            onPress={() => fund(faucetUrls.baseSepoliaUsdc)}
+          >
+            <Text style={styles.fundingLink}>Get test USDC</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {needsGas || needsUsdc ? (
+        <Text style={styles.faucetHint}>Your wallet address is copied when a faucet opens.</Text>
+      ) : null}
     </View>
   );
 }
@@ -89,4 +121,13 @@ const styles = StyleSheet.create({
   assetValue: { color: theme.colors.foreground, fontSize: 17, fontWeight: "600" },
   muted: { color: theme.colors.muted, fontSize: 14 },
   warning: { color: theme.colors.warning, fontSize: 13 },
+  fundingRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: theme.spacing,
+    justifyContent: "space-between",
+  },
+  fundingLink: { ...theme.type.label, color: theme.colors.accent, fontSize: 10 },
+  faucetHint: { color: theme.colors.muted, fontSize: 11, lineHeight: 16 },
 });

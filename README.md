@@ -108,8 +108,8 @@ Latest exact-output Uniswap payment:
 [`0x1cfd...abfa`](https://sepolia.basescan.org/tx/0x1cfd4e9ea0fb449711c771cda22da566bc7d32180c95d9423ec1a61351caabfa).
 
 `e2e-merchant.tap.eth` resolves publicly to the configured test merchant and carries the text
-record `name = E2E Test Merchant`. The phone-owned `yoyogi-market.tap.eth` name is registered
-during final device integration so its address matches the key generated on that merchant phone.
+record `name = E2E Test Merchant`. The merchant can register a phone-owned `*.tap.eth` name from
+the app; the flow binds it to that phone's wallet and waits for Sepolia confirmation.
 
 ## Run the checks
 
@@ -191,7 +191,7 @@ See [the full threat model](docs/02-architecture.md) and
 
 - Spending limits or session keys for low-value payments without a confirmation tap
 - Rotatable `tap.signer` records using ENSv2 EAC delegation
-- Merchant onboarding and anti-squatting controls
+- Anti-squatting controls for permissionless merchant onboarding
 - iPhone customer support
 - Production networks and independently managed merchant resolvers
 
