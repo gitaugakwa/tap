@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { HCESession, NFCTagType4, NFCTagType4NDEFContentType } from "react-native-hce";
+import { type HCESession, NFCTagType4, NFCTagType4NDEFContentType } from "react-native-hce";
 import NfcManager, { Ndef, NfcAdapter, NfcTech } from "react-native-nfc-manager";
+import { resetHceSession } from "../src/hce-session";
 
 const SPIKE_URL = "https://tap.xyz/p?v=1&test=1";
 const READ_TIMEOUT_MS = 30_000;
@@ -25,7 +26,7 @@ export default function NfcSpikeScreen() {
 
     async function initializeHce() {
       try {
-        const session = await HCESession.getInstance();
+        const session = await resetHceSession();
         if (cancelled) {
           if (!mountedRef.current) {
             await session.setEnabled(false);
@@ -34,7 +35,6 @@ export default function NfcSpikeScreen() {
         }
 
         sessionRef.current = session;
-        await session.setEnabled(false);
         if (cancelled || !mountedRef.current) {
           if (!mountedRef.current) {
             await session.setEnabled(false);
