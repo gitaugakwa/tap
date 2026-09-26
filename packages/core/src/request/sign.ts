@@ -1,4 +1,5 @@
 import { type Hex, hashTypedData, type LocalAccount } from "viem";
+import { normalize } from "viem/ens";
 import { getPaymentChain, PAYMENT_CHAIN_ID } from "../config/chains";
 import { TapConfigError } from "../errors";
 import type { PaymentRequest, SignedRequest } from "../types";
@@ -30,14 +31,19 @@ export function signRequest(
   request: PaymentRequest,
   account: LocalAccount,
 ): Promise<SignedRequest> {
+  const canonicalRequest = {
+    ...request,
+    merchantName: normalize(request.merchantName),
+  };
+
   return account
     .signTypedData({
       domain: getTapPayDomain(),
       types: PAYMENT_REQUEST_TYPES,
       primaryType: "PaymentRequest",
-      message: request,
+      message: canonicalRequest,
     })
-    .then((signature) => ({ chainId: PAYMENT_CHAIN_ID, request, signature }));
+    .then((signature) => ({ chainId: PAYMENT_CHAIN_ID, request: canonicalRequest, signature }));
 }
 
 export function hashRequest(request: PaymentRequest, chainId = PAYMENT_CHAIN_ID): Hex {

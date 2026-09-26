@@ -9,6 +9,7 @@ import {
   PAYMENT_REQUEST_TYPES,
   signRequest,
 } from "../../src/request/sign";
+import { decodeRequestUrl, encodeRequestUrl } from "../../src/request/url";
 import type { PaymentRequest } from "../../src/types";
 
 const request: PaymentRequest = {
@@ -55,19 +56,26 @@ describe("TapPay typed data", () => {
     );
   });
 
-  test("signs a request with the merchant account", async () => {
+  test("canonicalizes before sign, encode, decode, and recover", async () => {
     const account = privateKeyToAccount(generatePrivateKey());
-    const merchantRequest = { ...request, merchant: account.address };
+    const merchantRequest = {
+      ...request,
+      merchant: account.address,
+      merchantName: "YOYOGI-MARKET.tap.eth",
+    };
     const signed = await signRequest(merchantRequest, account);
+    const decoded = decodeRequestUrl(encodeRequestUrl(signed));
 
-    expect(signed).toMatchObject({ chainId: PAYMENT_CHAIN_ID, request: merchantRequest });
+    expect(merchantRequest.merchantName).toBe("YOYOGI-MARKET.tap.eth");
+    expect(decoded.request.merchantName).toBe("yoyogi-market.tap.eth");
+    expect(decoded).toEqual(signed);
     expect(
       await recoverTypedDataAddress({
         domain: getTapPayDomain(),
         types: PAYMENT_REQUEST_TYPES,
         primaryType: "PaymentRequest",
-        message: merchantRequest,
-        signature: signed.signature,
+        message: decoded.request,
+        signature: decoded.signature,
       }),
     ).toBe(account.address);
   });
