@@ -10,7 +10,8 @@
     "lint": "biome check .",
     "typecheck": "bun run --filter '*' typecheck",
     "test": "bun test packages",
-    "check": "bun run lint && bun run typecheck && bun run test",
+    "test:contracts": "cd contracts && forge test",
+    "check": "bun run lint && bun run typecheck && bun run test && bun run test:contracts",
     "hooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
