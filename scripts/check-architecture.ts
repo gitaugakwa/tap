@@ -9,7 +9,7 @@ type Finding = {
 };
 
 const root = resolve(import.meta.dir, "..");
-const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
+const codeExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json"]);
 const ignoredDirectories = new Set([
   ".git",
   ".expo",
@@ -103,7 +103,7 @@ for (const path of files) {
       source,
       "INV-13",
       "@tap/core must not import React Native or Expo",
-      /(?:from\s+|import\s*\()["'](?:react-native|expo)(?:[/'"])/,
+      /(?:from\s+|import\s*\()["'](?:react-native|expo)(?:[-/][^"']*)?["']/,
     );
     addMatches(
       findings,
@@ -112,6 +112,14 @@ for (const path of files) {
       "LAYERING",
       "@tap/core must not import @tap/react-native",
       /["']@tap\/react-native(?:[/'"])/,
+    );
+    addMatches(
+      findings,
+      file,
+      source,
+      "INV-03",
+      "merchant names must not be mapped to hard-coded addresses",
+      /["'][a-z0-9-]+(?:\.[a-z0-9-]+)+["']\s*:\s*["']0x[0-9a-f]{40}["']/i,
     );
   }
   if (isMobile) {
@@ -131,6 +139,16 @@ for (const path of files) {
       "mobile code must not import ABI modules",
       /(?:from\s+|import\s*\()["'][^"']*(?:^|\/)abi["']\)?/i,
     );
+    if (file === "apps/mobile/package.json") {
+      addMatches(
+        findings,
+        file,
+        source,
+        "INV-14",
+        "mobile must not depend directly on viem",
+        /["']viem["']\s*:/,
+      );
+    }
   }
   if (file.startsWith("packages/react-native/") && /["'](?:\.\.\/)*apps\//.test(source)) {
     findings.push({
