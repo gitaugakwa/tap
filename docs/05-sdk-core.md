@@ -111,6 +111,8 @@ export type { Address, Hash, Hex, LocalAccount };
 | `checkMerchantSetup` | `(name: string, address: Address) => Promise<MerchantSetupCheck>` | Merchant self-check (story M4) |
 | `signPermit` | `(s: SignedRequest, account: LocalAccount) => Promise<PermitSig>` | EIP-2612: owner = account, spender = TapPay, value = amount, deadline = expiry, nonce from token, domain `name`/`version` read from the token (INV-11) |
 | `payWithPermit` | `(s: SignedRequest, account: LocalAccount) => Promise<Hash>` | Offline pre-checks (allowlist, expiry) → `signPermit` → **simulate** → send. Throws `TapPayError` |
+| `quoteSwap` | `(s: SignedRequest, input: "native" \| Address, options?) => Promise<SwapQuote>` | Quotes exact USDC output across configured v3 fee tiers, including WETH-bridged ERC-20 routes; returns an integer-rounded maximum bound to the request |
+| `payWithSwap` | `(s: SignedRequest, account: LocalAccount, quote: SwapQuote) => Promise<Hash>` | Revalidates the quote/request binding, simulates, then pays through `TapSwapPay`; ERC-20 input uses Permit2 |
 | `pay` | `(s: SignedRequest, account: LocalAccount) => Promise<Hash>` | Approve-based fallback: approves exactly `amount` if the allowance is short, then pays |
 | `waitForPayment` | `(hash: Hash) => Promise<"success" \| "reverted">` | Waits for 1 confirmation |
 | `isPaid` | `(merchant: Address, nonce: Hex) => Promise<boolean>` | Reads `TapPay.isPaid` |

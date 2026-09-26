@@ -9,6 +9,10 @@
 4. **Close (5s):** "It's an SDK: wallets add tap-to-pay, POS apps add charging. Next: spending limits for a true Suica feel."
 
 ## Live demo script (booth)
+For the Uniswap version of the payment beat, select **ETH**, pause on the displayed maximum, then
+pay. Say: "The vendor still prices and receives exact USDC; Uniswap lets the customer pay with
+ETH." Keep USDC as the fallback path for the protected baseline demo.
+
 | Step | Merchant phone | Customer phone | Say |
 |---|---|---|---|
 | 0 | Settings: setup banner ✓ | Balance visible | "Two ordinary Android phones." |
@@ -59,6 +63,7 @@ Record with the real chain (no fake core). Keep the explorer tab of the `Paid` t
 11. **Demo video** link, **APK** download (GitHub release)
 
 ## Submission checklist
+- [ ] Submit [`FEEDBACK.md`](../FEEDBACK.md) at https://developers.uniswap.org/hackathon-feedback using the team's contact details.
 - [ ] Repo is **public**, README complete, `main` green (CI badge)
 - [ ] APK attached to a GitHub release (the "live demo link"; plus the web verifier if A2 shipped)
 - [ ] Demo video uploaded (2–4 min) and linked

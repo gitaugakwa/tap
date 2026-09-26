@@ -143,6 +143,7 @@ Cut from the bottom. **Never cut the core loop.** Each add-on is its own branch 
 | A9 | npm packaging polish | SDK | |
 
 ### A8 · Uniswap exact-output payments · depends: P1–P3
+**Status (09-26):** implementation, deployment, offline suite, funded swap E2E, and direct P3 regression are green. Physical-phone smoke and feedback-form submission remain manual release checks.
 1. Add and test an atomic `TapSwapPay` adapter without changing `TapPay` or `PaymentRequest`.
 2. Support native ETH and standard ERC-20 inputs; reject unsupported token mechanics and invalid route boundaries.
 3. Quote exact-output routes to USDC, cap input with explicit slippage, and bind Permit2 authorization to the request expiry.

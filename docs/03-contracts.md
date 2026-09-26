@@ -1,10 +1,14 @@
 # 03 · Contracts
 
-Two contracts, two chains:
+Three contracts, two chains. `TapSwapPay` is the additive Base Sepolia adapter: it swaps bounded
+native ETH or Permit2 ERC-20 input for the request's exact USDC amount, then calls `TapPay`
+atomically. It validates exact-output path boundaries, refunds unused input, and reverts the swap
+if settlement fails. Fee-on-transfer and rebasing input tokens are intentionally unsupported.
 
 | Contract | Chain | Job |
 |---|---|---|
 | `TapPay` | Base Sepolia (84532) | Settles a merchant-signed payment request. Links payment ↔ request, blocks replay/expiry, emits one clean `Paid` event |
+| `TapSwapPay` | Base Sepolia (84532) | Converts bounded ETH or standard ERC-20 input into exact USDC, then settles through `TapPay` |
 | `TapMerchantRegistrar` | Sepolia (11155111) | Issues merchant subnames under `tap.eth` on our ENSv2 UserRegistry and writes their address + display-name records |
 
 **Why a contract at all for payments:** a plain ERC-20 transfer can't tell the merchant *which* request was paid; two $5 payments look identical. TapPay ties each payment to a signed request, rejects expired or replayed requests, and emits one event the merchant can watch.

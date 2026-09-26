@@ -28,7 +28,8 @@ Merchant phone                     Customer phone                     Chains
      |                                    | Verify signature             |
      |                                    | Resolve *.tap.eth ----------> Sepolia ENSv2
      |                                    | Check name -> signer          |
-     |                                    | Confirm + USDC permit -------> Base Sepolia
+     |                                    | Confirm USDC or ETH ----------> Base Sepolia
+     |                                    | ETH: exact-output Uniswap     |
      | <------------------------ Paid event for merchant + nonce -------- TapPay
      | Both phones show paid             |                              |
 ```
@@ -36,6 +37,10 @@ Merchant phone                     Customer phone                     Chains
 Each request binds the merchant, token, amount, nonce, expiry, merchant ENS name, chain, and
 TapPay contract into one EIP-712 signature. `TapPay` rejects expired, altered, and replayed
 requests and emits a `Paid` event tied to the exact merchant nonce.
+
+The customer can keep the direct USDC permit path or select ETH. ETH is quoted as exact-output
+USDC through Uniswap v3, capped before confirmation, swapped by `TapSwapPay`, and then settled
+through the same `TapPay` request. The merchant always receives the signed USDC amount.
 
 ## Why ENSv2 is central
 
@@ -90,7 +95,9 @@ TapPay deployment transaction:
 TapSwapPay deployment transaction:
 [`0x34b2...58d3`](https://sepolia.basescan.org/tx/0x34b2e25bf8728c74d02971d1b76cded41e37b7bcad95814afb4e89fd01ae58d3).
 Latest protected P3 payment:
-[`0xbe61...c53a`](https://sepolia.basescan.org/tx/0xbe61a3aaea39b053e458d5aae479dd7eac3a184efe13c1b2a3520c743a94c53a).
+[`0x34c1...bb22`](https://sepolia.basescan.org/tx/0x34c1e11c324500015ba4bca9b21ed90c9c33e1c1051375567df1a580895bbb22).
+Latest exact-output Uniswap payment:
+[`0x1cfd...abfa`](https://sepolia.basescan.org/tx/0x1cfd4e9ea0fb449711c771cda22da566bc7d32180c95d9423ec1a61351caabfa).
 
 `e2e-merchant.tap.eth` resolves publicly to the configured test merchant and carries the text
 record `name = E2E Test Merchant`. The phone-owned `yoyogi-market.tap.eth` name is registered
@@ -113,10 +120,13 @@ and the four test keys, then fund the customer with Base Sepolia ETH and USDC.
 
 ```bash
 bun run e2e
+bun run e2e:swap
 ```
 
 This submits a real `$0.01` USDC payment. It checks live ENS resolution, signature and URL
 roundtrip, tamper rejection, SDK/contract hash parity, settlement, `isPaid`, and replay rejection.
+`e2e:swap` pays the same exact USDC output with native ETH and additionally checks the displayed
+input cap, `SwapPaid` customer attribution, merchant balance delta, and original `Paid` event.
 After registering the merchant phone during J1, `bun run ens:check` verifies both demo names and
 their display records through the public ENS path.
 

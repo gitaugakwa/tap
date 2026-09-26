@@ -86,6 +86,12 @@ sequenceDiagram
     C-->>CA: receipt success → green ✓
 ```
 
+The optional Uniswap path begins only after the same verification result. `quoteSwap` asks
+QuoterV2 for exact USDC output, the customer confirms a visible maximum, and `TapSwapPay` uses
+SwapRouter02 before calling the original `TapPay.pay`. This preserves the merchant watcher and
+all signed-request invariants. Native ETH is one transaction; ERC-20 input adds Permit2 and may
+need a one-time token approval. Direct USDC remains the default path.
+
 Typical timing: tap → verified screen ~1–2s (two ENS reads on Sepolia), confirm → both screens green ~2–4s (Base Sepolia ~2s blocks).
 
 ## Chains
