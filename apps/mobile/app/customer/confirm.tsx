@@ -1,8 +1,8 @@
-import type { LocalAccount } from "@tap/core";
+import { formatTokenUnits, type LocalAccount } from "@tap/core";
 import { createFakeCore } from "@tap/core/testing";
 import { useTapToPay } from "@tap/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MerchantCard } from "../../src/components/MerchantCard";
 import { StatusView } from "../../src/components/StatusView";
@@ -28,6 +28,7 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
     [settings.fakeChain],
   );
   const pay = useTapToPay({ account, core });
+  const [paymentAsset, setPaymentAsset] = useState<"usdc" | "eth">("usdc");
   const submitted = useRef(false);
   const { submitUrl } = pay;
 
@@ -51,6 +52,12 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
   // ensName are unreachable outside it.
   if (pay.state === "verified" && pay.verify?.ok === true) {
     const verified = pay.verify;
+    const ethQuote = pay.quoteState === "ready" ? pay.swapQuote : undefined;
+    const payDisabled = paymentAsset === "eth" && !ethQuote;
+    const selectAsset = (asset: "usdc" | "eth") => {
+      setPaymentAsset(asset);
+      if (asset === "eth") void pay.requestSwapQuote("native");
+    };
     return (
       <View style={styles.container}>
         <MerchantCard
@@ -59,8 +66,55 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
           amount={verified.displayAmount}
           expiresAt={verified.expiresAt}
         />
-        <Pressable style={styles.payButton} onPress={() => void pay.confirm()}>
-          <Text style={styles.payButtonText}>Pay {verified.displayAmount}</Text>
+        <View style={styles.assetPicker}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: paymentAsset === "usdc" }}
+            style={[styles.assetOption, paymentAsset === "usdc" && styles.assetOptionActive]}
+            onPress={() => selectAsset("usdc")}
+          >
+            <Text
+              style={[
+                styles.assetOptionText,
+                paymentAsset === "usdc" && styles.assetOptionTextActive,
+              ]}
+            >
+              USDC
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: paymentAsset === "eth" }}
+            style={[styles.assetOption, paymentAsset === "eth" && styles.assetOptionActive]}
+            onPress={() => selectAsset("eth")}
+          >
+            <Text
+              style={[
+                styles.assetOptionText,
+                paymentAsset === "eth" && styles.assetOptionTextActive,
+              ]}
+            >
+              ETH
+            </Text>
+          </Pressable>
+        </View>
+        {paymentAsset === "eth" ? (
+          <Text style={[styles.quoteText, pay.quoteState === "failed" && styles.quoteError]}>
+            {ethQuote
+              ? `Maximum ${formatTokenUnits(ethQuote.amountInMaximum, 18)} ETH`
+              : pay.quoteState === "failed"
+                ? copy.getErrorMessage(pay.quoteError?.code)
+                : "Getting ETH quote..."}
+          </Text>
+        ) : null}
+        <Pressable
+          disabled={payDisabled}
+          style={[styles.payButton, payDisabled && styles.payButtonDisabled]}
+          onPress={() => void pay.confirm(paymentAsset === "eth" ? ethQuote : undefined)}
+        >
+          <Text style={styles.payButtonText}>
+            Pay {verified.displayAmount} in {paymentAsset === "eth" ? "ETH" : "USDC"}
+          </Text>
         </Pressable>
       </View>
     );
@@ -97,12 +151,12 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
   }
 
   if (pay.state === "failed") {
+    const detail =
+      paymentAsset === "eth" && pay.error?.code === "insufficient_funds"
+        ? "Not enough ETH to pay."
+        : copy.getErrorMessage(pay.error?.code);
     return (
-      <StatusView
-        variant="failure"
-        title="Payment failed"
-        detail={copy.getErrorMessage(pay.error?.code)}
-      >
+      <StatusView variant="failure" title="Payment failed" detail={detail}>
         <DoneButton onPress={done} />
       </StatusView>
     );
@@ -153,12 +207,31 @@ const styles = StyleSheet.create({
     borderRadius: theme.spacing * 1.5,
     padding: theme.spacing * 2.5,
   },
+  payButtonDisabled: { opacity: 0.45 },
   payButtonText: {
     color: theme.colors.background,
     fontSize: 20,
     fontWeight: "700",
     textAlign: "center",
   },
+  assetPicker: {
+    backgroundColor: "#e5e7eb",
+    borderRadius: theme.spacing,
+    flexDirection: "row",
+    padding: 3,
+  },
+  assetOption: {
+    alignItems: "center",
+    borderRadius: 6,
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 44,
+  },
+  assetOptionActive: { backgroundColor: theme.colors.background },
+  assetOptionText: { color: theme.colors.muted, fontSize: 16, fontWeight: "600" },
+  assetOptionTextActive: { color: theme.colors.foreground },
+  quoteText: { color: theme.colors.muted, fontSize: 14, textAlign: "center" },
+  quoteError: { color: theme.colors.failure },
   secondaryButton: {
     borderColor: theme.colors.muted,
     borderRadius: theme.spacing,

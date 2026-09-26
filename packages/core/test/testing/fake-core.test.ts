@@ -21,6 +21,12 @@ describe("createFakeCore", () => {
       displayName: "Takoyaki Stand",
       displayAmount: "$5.00",
     });
+
+    const quote = await core.quoteSwap(signed, "native");
+    expect(quote).toMatchObject({ inputKind: "native", amountOut: request.amount });
+    await expect(core.payWithSwap(signed, fakeMerchantAccount, quote)).resolves.toBe(
+      toHex(new Uint8Array(32).fill(3)),
+    );
   });
 
   test("applies method overrides", async () => {

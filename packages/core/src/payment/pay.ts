@@ -56,7 +56,7 @@ export function mapPaymentError(error: unknown): TapPayError {
   });
 }
 
-function settlementConfig(signed: SignedRequest) {
+export function validateSettlement(signed: SignedRequest) {
   const chain = getPaymentChain(signed.chainId);
   if (!chain) throw new TapPayError("unknown_chain", "Payment chain is not supported");
   if (!getTokenConfig(signed.chainId, signed.request.token)) {
@@ -106,7 +106,7 @@ export async function waitForAllowance(
 
 export async function payWithPermit(signed: SignedRequest, account: LocalAccount): Promise<Hash> {
   try {
-    const chain = settlementConfig(signed);
+    const chain = validateSettlement(signed);
     await assertFunds(signed, account.address);
     const permit = await signPermit(signed, account);
     const client = getPaymentClient();
@@ -125,7 +125,7 @@ export async function payWithPermit(signed: SignedRequest, account: LocalAccount
 
 export async function pay(signed: SignedRequest, account: LocalAccount): Promise<Hash> {
   try {
-    const chain = settlementConfig(signed);
+    const chain = validateSettlement(signed);
     await assertFunds(signed, account.address);
     const client = getPaymentClient();
     const allowance = await client.readContract({

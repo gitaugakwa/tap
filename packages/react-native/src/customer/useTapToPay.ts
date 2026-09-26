@@ -3,7 +3,11 @@ import {
   type Hash,
   type LocalAccount,
   payWithPermit,
+  payWithSwap,
+  quoteSwap,
   type SignedRequest,
+  type SwapInput,
+  type SwapQuote,
   type VerifyResult,
   verifyRequest,
   waitForPayment,
@@ -24,9 +28,13 @@ export type UseTapToPayResult = {
   signed?: SignedRequest;
   txHash?: Hash;
   error?: { code: string; message: string };
+  swapQuote?: SwapQuote;
+  quoteState: "idle" | "quoting" | "ready" | "failed";
+  quoteError?: { code: string; message: string };
   startReading(): Promise<void>;
   submitUrl(url: string): Promise<void>;
-  confirm(): Promise<void>;
+  requestSwapQuote(input: SwapInput): Promise<SwapQuote | undefined>;
+  confirm(quote?: SwapQuote): Promise<void>;
   reset(): void;
 };
 
@@ -44,16 +52,32 @@ export function useTapToPay({
 }: UseTapToPayOptions): UseTapToPayResult {
   const core: Pick<
     TapCoreLike,
-    "decodeRequestUrl" | "verifyRequest" | "payWithPermit" | "waitForPayment"
-  > = injectedCore ?? { decodeRequestUrl, verifyRequest, payWithPermit, waitForPayment };
+    | "decodeRequestUrl"
+    | "verifyRequest"
+    | "payWithPermit"
+    | "quoteSwap"
+    | "payWithSwap"
+    | "waitForPayment"
+  > = injectedCore ?? {
+    decodeRequestUrl,
+    verifyRequest,
+    payWithPermit,
+    quoteSwap,
+    payWithSwap,
+    waitForPayment,
+  };
   const [machine, dispatch] = useReducer(payReducer, { state: "idle" });
   const [verify, setVerify] = useState<VerifyResult>();
   const [signed, setSigned] = useState<SignedRequest>();
   const [txHash, setTxHash] = useState<Hash>();
   const [error, setError] = useState<{ code: string; message: string }>();
+  const [swapQuote, setSwapQuote] = useState<SwapQuote>();
+  const [quoteState, setQuoteState] = useState<"idle" | "quoting" | "ready" | "failed">("idle");
+  const [quoteError, setQuoteError] = useState<{ code: string; message: string }>();
   const stateRef = useRef<PayState>("idle");
   const signedRef = useRef<SignedRequest | undefined>(undefined);
   const operationRef = useRef(0);
+  const quoteOperationRef = useRef(0);
   const expiryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   function clearExpiryTimer() {
@@ -73,11 +97,16 @@ export function useTapToPay({
     setSigned(undefined);
     setTxHash(undefined);
     setError(undefined);
+    quoteOperationRef.current += 1;
+    setSwapQuote(undefined);
+    setQuoteState("idle");
+    setQuoteError(undefined);
   }
 
   useEffect(
     () => () => {
       operationRef.current += 1;
+      quoteOperationRef.current += 1;
       if (expiryTimerRef.current) clearTimeout(expiryTimerRef.current);
       expiryTimerRef.current = undefined;
       void cancelRead();
@@ -113,8 +142,11 @@ export function useTapToPay({
         () => {
           if (operation !== operationRef.current || stateRef.current !== "verified") return;
           operationRef.current += 1;
+          quoteOperationRef.current += 1;
           signedRef.current = undefined;
           setSigned(undefined);
+          setSwapQuote(undefined);
+          setQuoteState("idle");
           setVerify({ ok: false, reason: "expired" });
           transition({ type: "REJECTED" });
         },
@@ -156,7 +188,35 @@ export function useTapToPay({
     await verifyUrl(url, operation);
   }
 
-  async function confirm() {
+  async function requestSwapQuote(input: SwapInput): Promise<SwapQuote | undefined> {
+    const request = signedRef.current;
+    if (stateRef.current !== "verified" || !request) return undefined;
+
+    const operation = ++quoteOperationRef.current;
+    setSwapQuote(undefined);
+    setQuoteError(undefined);
+    setQuoteState("quoting");
+    try {
+      const quote = await core.quoteSwap(request, input);
+      if (
+        operation !== quoteOperationRef.current ||
+        stateRef.current !== "verified" ||
+        signedRef.current !== request
+      ) {
+        return undefined;
+      }
+      setSwapQuote(quote);
+      setQuoteState("ready");
+      return quote;
+    } catch (cause) {
+      if (operation !== quoteOperationRef.current) return undefined;
+      setQuoteError(describeError(cause));
+      setQuoteState("failed");
+      return undefined;
+    }
+  }
+
+  async function confirm(quote?: SwapQuote) {
     const request = signedRef.current;
     if (stateRef.current !== "verified" || !request) return;
 
@@ -165,7 +225,9 @@ export function useTapToPay({
     setError(undefined);
     transition({ type: "CONFIRM" });
     try {
-      const hash = await core.payWithPermit(request, account);
+      const hash = quote
+        ? await core.payWithSwap(request, account, quote)
+        : await core.payWithPermit(request, account);
       if (operation !== operationRef.current) return;
       setTxHash(hash);
       const receipt = await core.waitForPayment(hash);
@@ -196,8 +258,12 @@ export function useTapToPay({
     signed,
     txHash,
     error,
+    swapQuote,
+    quoteState,
+    quoteError,
     startReading,
     submitUrl,
+    requestSwapQuote,
     confirm,
     reset,
   };

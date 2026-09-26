@@ -9,6 +9,14 @@ export const paymentChains = {
   [PAYMENT_CHAIN_ID]: {
     chain: baseSepolia,
     tapPay: "0x4c679b2dE8AE517fF12AA34A1bE0F81913678792" as Address,
+    swap: {
+      adapter: "0xA36df4D6DA08bA1FbE89ddEB7229218FAf0BF84d" as Address,
+      router: "0x94cC0AaC535CCDB3C01d6787D6413C739ae12bc4" as Address,
+      quoter: "0xC5290058841028F1614F3A6F0F5816cAd0df5E27" as Address,
+      permit2: "0x000000000022D473030F116dDEE9F6B43aC78BA3" as Address,
+      weth: "0x4200000000000000000000000000000000000006" as Address,
+      feeTiers: [100, 500, 3_000, 10_000],
+    },
     tokens: {
       "0x036CbD53842c5426634e7929541eC2318f3dCF7e": {
         symbol: "USDC",

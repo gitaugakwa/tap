@@ -13,6 +13,12 @@ let config: TapConfig = {};
 let paymentClient: PublicClient | null = null;
 let ensClient: PublicClient | null = null;
 
+type PaymentWalletClient = WalletClient<
+  ReturnType<typeof http>,
+  (typeof paymentChains)[typeof PAYMENT_CHAIN_ID]["chain"],
+  LocalAccount
+>;
+
 export function configureTap(nextConfig: TapConfig = {}): void {
   config = nextConfig;
   paymentClient = null;
@@ -34,13 +40,10 @@ export function getPaymentClient(): PublicClient {
   return paymentClient;
 }
 
-export function getPaymentWalletClient(
-  account: LocalAccount,
-): WalletClient<
-  ReturnType<typeof http>,
-  (typeof paymentChains)[typeof PAYMENT_CHAIN_ID]["chain"],
-  LocalAccount
-> {
+export function getPaymentWalletClient(account: LocalAccount): PaymentWalletClient {
+  if (config.paymentWalletClient) {
+    return config.paymentWalletClient as PaymentWalletClient;
+  }
   return createWalletClient({
     account,
     chain: paymentChains[PAYMENT_CHAIN_ID].chain,

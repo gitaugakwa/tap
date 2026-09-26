@@ -21,6 +21,25 @@ export function formatAmount(amount: bigint, token?: Address): string {
   return `${whole}.${fraction} ${symbol}`;
 }
 
+export function formatTokenUnits(amount: bigint, decimals: number, maxFraction = 6): string {
+  if (
+    !Number.isInteger(decimals) ||
+    decimals < 0 ||
+    !Number.isInteger(maxFraction) ||
+    maxFraction < 0
+  ) {
+    throw new TapInputError("invalid_amount", "Token precision must be a non-negative integer");
+  }
+  const scale = 10n ** BigInt(decimals);
+  const whole = amount / scale;
+  const fraction = (amount % scale)
+    .toString()
+    .padStart(decimals, "0")
+    .slice(0, maxFraction)
+    .replace(/0+$/, "");
+  return fraction ? `${whole}.${fraction}` : whole.toString();
+}
+
 export function parseAmountInput(input: string, token?: Address): bigint {
   const { decimals } = tokenConfigOrThrow(token);
   const trimmed = input.trim();

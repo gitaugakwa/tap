@@ -88,6 +88,11 @@ If `demoTamper` is on, a small red "DEMO: tampered tag" chip is shown so it's ne
 - When a URL arrives → navigate to `customer/confirm`.
 
 ### `customer/confirm`: Verify and pay
+The verified view has a `USDC / ETH` segmented control. USDC remains the default and follows the
+original permit path. Selecting ETH requests an exact-output quote, displays the maximum ETH
+input, and keeps Pay disabled until the bounded quote is ready. Quote failure leaves the verified
+request active so the customer can return to direct USDC.
+
 Driven by `useTapToPay` state:
 | State | UI |
 |---|---|

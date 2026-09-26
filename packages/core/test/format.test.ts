@@ -1,6 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import type { Address } from "../src";
-import { DEFAULT_TOKEN, formatAmount, parseAmountInput, TapInputError } from "../src";
+import {
+  DEFAULT_TOKEN,
+  formatAmount,
+  formatTokenUnits,
+  parseAmountInput,
+  TapInputError,
+} from "../src";
 import { MAX_CHARGE } from "../src/config/constants";
 
 const UNKNOWN_TOKEN = "0x1111111111111111111111111111111111111111" as Address;
@@ -82,5 +88,13 @@ describe("formatAmount", () => {
   test("accepts the default token explicitly and rejects an unknown one", () => {
     expect(formatAmount(5_000_000n, DEFAULT_TOKEN)).toBe("$5.00");
     expect(() => formatAmount(5_000_000n, UNKNOWN_TOKEN)).toThrow(TapInputError);
+  });
+});
+
+describe("formatTokenUnits", () => {
+  test("formats native input without floating-point conversion", () => {
+    expect(formatTokenUnits(302_387_274_769_715n, 18)).toBe("0.000302");
+    expect(formatTokenUnits(1_000_000_000_000_000_000n, 18)).toBe("1");
+    expect(() => formatTokenUnits(1n, -1)).toThrow();
   });
 });
