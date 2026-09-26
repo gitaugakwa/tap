@@ -1,0 +1,13 @@
+{
+  "chainId": 84532,
+  "verifyingContract": "0x00000000000000000000000000000000000ca5e1",
+  "request": {
+    "merchant": "0x1111111111111111111111111111111111111111",
+    "token": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    "amount": "5000000",
+    "nonce": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "expiry": "1790000000",
+    "merchantName": "yoyogi-market.tap.eth"
+  },
+  "digest": "0x719c70100f498dfec0735f477e4e1c2818e3913b29e94b6e07731b268b82ab73"
+}

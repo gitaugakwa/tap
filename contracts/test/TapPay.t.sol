@@ -184,6 +184,50 @@ contract TapPayTest is Test {
         assertTrue(tapPay.isPaid(address(wallet), request.nonce));
     }
 
+    function test_HashParity_FixedVector() public {
+        string memory json = vm.readFile("test/fixtures/hash-vector.json");
+        uint256 chainId = vm.parseJsonUint(json, ".chainId");
+        address verifyingContract = vm.parseJsonAddress(json, ".verifyingContract");
+        TapPay.PaymentRequest memory vectorRequest = TapPay.PaymentRequest({
+            merchant: vm.parseJsonAddress(json, ".request.merchant"),
+            token: vm.parseJsonAddress(json, ".request.token"),
+            amount: vm.parseUint(vm.parseJsonString(json, ".request.amount")),
+            nonce: vm.parseJsonBytes32(json, ".request.nonce"),
+            expiry: uint64(vm.parseUint(vm.parseJsonString(json, ".request.expiry"))),
+            merchantName: vm.parseJsonString(json, ".request.merchantName")
+        });
+
+        vm.chainId(chainId);
+        deployCodeTo("TapPay.sol", verifyingContract);
+
+        assertEq(TapPay(verifyingContract).hashRequest(vectorRequest), vm.parseJsonBytes32(json, ".digest"));
+    }
+
+    function testFuzz_TamperAnyField(uint8 field, bytes32 mutation) public {
+        bytes memory signature = _signRequest(request, MERCHANT_PK);
+
+        if (field % 6 == 0) {
+            address changed = address(uint160(uint256(mutation)));
+            request.merchant = changed == request.merchant ? address(uint160(uint256(mutation)) ^ 1) : changed;
+        } else if (field % 6 == 1) {
+            address changed = address(uint160(uint256(mutation)));
+            request.token = changed == request.token ? address(uint160(uint256(mutation)) ^ 1) : changed;
+        } else if (field % 6 == 2) {
+            uint256 changed = uint256(mutation);
+            if (changed == 0 || changed == request.amount) changed = request.amount + 1;
+            request.amount = changed;
+        } else if (field % 6 == 3) {
+            request.nonce = mutation == request.nonce ? bytes32(uint256(mutation) ^ 1) : mutation;
+        } else if (field % 6 == 4) {
+            uint64 changed = uint64(bound(uint256(mutation), block.timestamp + 1, type(uint64).max));
+            request.expiry = changed == request.expiry ? request.expiry + 1 : changed;
+        } else {
+            request.merchantName = string(abi.encodePacked(mutation));
+        }
+
+        _expectBadSignature(request, signature);
+    }
+
     function _approveAndPay(TapPay.PaymentRequest memory req, bytes memory signature) private {
         vm.prank(payer);
         token.approve(address(tapPay), req.amount);
