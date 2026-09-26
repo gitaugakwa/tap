@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { MerchantCard } from "../../src/components/MerchantCard";
 import { StatusView } from "../../src/components/StatusView";
 import { copy } from "../../src/copy";
+import { hapticFailure, hapticSuccess } from "../../src/haptics";
 import { useSettings } from "../../src/settings-store";
 import { theme } from "../../src/theme";
 import { useWallet } from "../../src/wallet/WalletProvider";
@@ -35,6 +36,13 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
     submitted.current = true;
     void submitUrl(url);
   }, [url, submitUrl]);
+
+  useEffect(() => {
+    if (pay.state === "paid") hapticSuccess();
+    if (pay.state === "rejected" || pay.state === "failed" || pay.state === "error") {
+      hapticFailure();
+    }
+  }, [pay.state]);
 
   const done = () => router.replace("/customer");
 

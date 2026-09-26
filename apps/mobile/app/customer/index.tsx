@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BalanceRow } from "../../src/components/BalanceRow";
 import { QrScanner } from "../../src/components/QrScanner";
 import { copy } from "../../src/copy";
+import { hapticTap } from "../../src/haptics";
 import { useSettings } from "../../src/settings-store";
 import { theme } from "../../src/theme";
 import { useWallet } from "../../src/wallet/WalletProvider";
@@ -32,7 +33,10 @@ export default function CustomerReadyScreen() {
       (async () => {
         try {
           const url = await readRequest({ timeoutMs: READ_TIMEOUT_MS });
-          if (!cancelled) router.push({ pathname: "/customer/confirm", params: { url } });
+          if (!cancelled) {
+            hapticTap();
+            router.push({ pathname: "/customer/confirm", params: { url } });
+          }
         } catch (error) {
           if (!cancelled) setReadError(copy.getErrorMessage(codeOf(error)));
         }
@@ -49,6 +53,7 @@ export default function CustomerReadyScreen() {
     return (
       <QrScanner
         onScan={(url) => {
+          hapticTap();
           setScanning(false);
           router.push({ pathname: "/customer/confirm", params: { url } });
         }}

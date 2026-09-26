@@ -2,12 +2,14 @@ import type { LocalAccount } from "@tap/core";
 import { formatAmount } from "@tap/core";
 import { createFakeCore } from "@tap/core/testing";
 import { useCharge } from "@tap/react-native";
+import { useKeepAwake } from "expo-keep-awake";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { QrCode } from "../../src/components/QrCode";
 import { StatusView } from "../../src/components/StatusView";
 import { copy } from "../../src/copy";
+import { hapticFailure, hapticSuccess } from "../../src/haptics";
 import { useSettings } from "../../src/settings-store";
 import { theme } from "../../src/theme";
 import { useWallet } from "../../src/wallet/WalletProvider";
@@ -44,6 +46,7 @@ function ActionButton({ label, onPress }: { label: string; onPress(): void }) {
 }
 
 function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint }) {
+  useKeepAwake();
   const router = useRouter();
   const [settings] = useSettings();
   const core = useMemo(
@@ -63,6 +66,11 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   useEffect(() => {
     if (charge.state === "cancelled") router.back();
   }, [charge.state, router]);
+
+  useEffect(() => {
+    if (charge.state === "paid") hapticSuccess();
+    if (charge.state === "error") hapticFailure();
+  }, [charge.state]);
 
   if (charge.state === "waiting") {
     return (

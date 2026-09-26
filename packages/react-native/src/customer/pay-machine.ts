@@ -40,7 +40,9 @@ export function payReducer(state: PayMachineState, action: PayMachineAction): Pa
       if (action.type === "FAIL") return { state: "error" };
       return state;
     case "verified":
-      return action.type === "CONFIRM" ? { state: "paying" } : state;
+      if (action.type === "CONFIRM") return { state: "paying" };
+      if (action.type === "REJECTED") return { state: "rejected" };
+      return state;
     case "paying":
       if (action.type === "PAID") return { state: "paid" };
       if (action.type === "FAIL") return { state: "failed" };

@@ -15,6 +15,7 @@ describe("payReducer", () => {
     ["verifying", "REJECTED", "rejected"],
     ["verifying", "FAIL", "error"],
     ["verified", "CONFIRM", "paying"],
+    ["verified", "REJECTED", "rejected"],
     ["paying", "PAID", "paid"],
     ["paying", "FAIL", "failed"],
   ] as const)("transitions %s + %s to %s", (state, action, expected) => {
