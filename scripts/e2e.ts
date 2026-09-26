@@ -2,7 +2,7 @@
  * Protected flow P3. This submits a real $0.01 USDC payment on Base Sepolia.
  * It never prints private keys, request signatures, or permit signatures.
  */
-import { createPublicClient, type Hex, http } from "viem";
+import { type Address, createPublicClient, type Hex, http } from "viem";
 import { tapPayAbi } from "../packages/core/src/config/abi";
 import {
   configureTap,
@@ -24,6 +24,8 @@ import { tamperRequestUrl } from "../packages/core/src/testing";
 
 const E2E_MERCHANT_NAME = "e2e-merchant.tap.eth";
 const E2E_AMOUNT = 10_000n;
+const PAID_STATE_ATTEMPTS = 20;
+const PAID_STATE_INTERVAL_MS = 500;
 
 function required(name: string): string {
   const value = process.env[name];
@@ -37,6 +39,18 @@ function assert(condition: unknown, message: string): asserts condition {
 
 function pass(message: string): void {
   console.log(`[ok] ${message}`);
+}
+
+async function waitUntilPaid(merchant: Address, nonce: Hex): Promise<void> {
+  for (let attempt = 0; attempt < PAID_STATE_ATTEMPTS; attempt += 1) {
+    try {
+      if (await isPaid(merchant, nonce)) return;
+    } catch {
+      // Confirmed receipts can become visible before a load-balanced RPC serves the new state.
+    }
+    await Bun.sleep(PAID_STATE_INTERVAL_MS);
+  }
+  throw new Error("TapPay paid state was not visible after a confirmed payment");
 }
 
 const baseRpc = required("BASE_SEPOLIA_RPC");
@@ -104,10 +118,7 @@ const receipt = await waitForPayment(transaction);
 assert(receipt === "success", `Payment transaction ${transaction} reverted`);
 pass("payment confirmed");
 
-assert(
-  await isPaid(decoded.request.merchant, decoded.request.nonce),
-  "TapPay did not mark nonce paid",
-);
+await waitUntilPaid(decoded.request.merchant, decoded.request.nonce);
 pass("isPaid returned true");
 
 try {
