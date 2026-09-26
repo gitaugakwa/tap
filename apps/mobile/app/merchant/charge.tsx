@@ -5,7 +5,7 @@ import { useCharge } from "@tap/react-native";
 import { useKeepAwake } from "expo-keep-awake";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { Button } from "../../src/components/Button";
 import { QrCode } from "../../src/components/QrCode";
@@ -88,7 +88,15 @@ function ExplorerLink({ txHash }: { txHash: string }) {
   );
 }
 
-function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint }) {
+function ChargeView({
+  account,
+  amount,
+  onRetry,
+}: {
+  account: LocalAccount;
+  amount: bigint;
+  onRetry(): void;
+}) {
   useKeepAwake();
   const router = useRouter();
   const [settings] = useSettings();
@@ -105,6 +113,11 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   });
   const countdown = useCountdown(charge.expiresAt);
   const display = displayAmount(charge.amount ?? amount);
+  const startCharge = useEffectEvent(charge.start);
+
+  useEffect(() => {
+    void startCharge(amount);
+  }, [amount]);
 
   useEffect(() => {
     if (charge.state === "cancelled") router.back();
@@ -165,13 +178,7 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   if (charge.state === "expired") {
     return (
       <StatusView variant="neutral" title="Request expired">
-        <Button
-          label="Try again"
-          onPress={() => {
-            charge.reset();
-            void charge.start(amount);
-          }}
-        />
+        <Button label="Try again" onPress={onRetry} />
         <Button label="Back" variant="quiet" onPress={() => router.replace("/merchant")} />
       </StatusView>
     );
@@ -184,13 +191,7 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
         title="Charge failed"
         detail={copy.getErrorMessage(charge.error?.code)}
       >
-        <Button
-          label="Try again"
-          onPress={() => {
-            charge.reset();
-            void charge.start(amount);
-          }}
-        />
+        <Button label="Try again" onPress={onRetry} />
         <Button label="Back" variant="quiet" onPress={() => router.replace("/merchant")} />
       </StatusView>
     );
@@ -202,13 +203,21 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
 export default function MerchantChargeScreen() {
   const { amount } = useLocalSearchParams<{ amount: string }>();
   const { account } = useWallet();
+  const [attempt, setAttempt] = useState(0);
 
   if (!/^\d+$/.test(amount ?? "")) {
     return <StatusView variant="failure" title="Charge failed" detail={copy.getErrorMessage()} />;
   }
   if (!account) return <StatusView variant="pending" title="Preparing…" />;
 
-  return <ChargeView account={account} amount={BigInt(amount)} />;
+  return (
+    <ChargeView
+      key={attempt}
+      account={account}
+      amount={BigInt(amount)}
+      onRetry={() => setAttempt((current) => current + 1)}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

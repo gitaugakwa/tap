@@ -4,6 +4,7 @@ const path = require("node:path");
 
 const CARD_SERVICE = "com.reactnativehce.services.CardService";
 const NFC_PERMISSION = "android.permission.NFC";
+const NDEF_DISCOVERED = "android.nfc.action.NDEF_DISCOVERED";
 
 const aidList = `<?xml version="1.0" encoding="utf-8"?>
 <host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
@@ -37,6 +38,25 @@ function withHceManifest(config) {
     }
 
     const application = AndroidConfig.Manifest.getMainApplicationOrThrow(manifestConfig.modResults);
+    const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(manifestConfig.modResults);
+    mainActivity["intent-filter"] = mainActivity["intent-filter"] ?? [];
+    mainActivity["intent-filter"] = mainActivity["intent-filter"].filter(
+      (filter) => !filter.action?.some((action) => action.$?.["android:name"] === NDEF_DISCOVERED),
+    );
+    mainActivity["intent-filter"].push({
+      action: [{ $: { "android:name": NDEF_DISCOVERED } }],
+      category: [{ $: { "android:name": "android.intent.category.DEFAULT" } }],
+      data: [
+        {
+          $: {
+            "android:scheme": "https",
+            "android:host": "tap-pay.xyz",
+            "android:path": "/p",
+          },
+        },
+      ],
+    });
+
     application.service = application.service ?? [];
     application.service = application.service.filter(
       (service) => service.$?.["android:name"] !== CARD_SERVICE,

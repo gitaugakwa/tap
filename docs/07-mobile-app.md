@@ -14,6 +14,7 @@ apps/mobile/
 │  └─ withHce.js           # Expo config plugin: HCE service + aid_list.xml (see 08-nfc.md)
 ├─ app/                    # expo-router: one file = one screen
 │  ├─ _layout.tsx          # FIRST LINE: import "react-native-get-random-values"; then configureTap(); WalletProvider
+│  ├─ +native-intent.tsx   # validated OS link → untrusted URL parameter for customer/confirm
 │  ├─ index.tsx            # Role picker
 │  ├─ merchant/
 │  │  ├─ index.tsx         # Amount entry (+ setup banner)
@@ -46,6 +47,11 @@ index (role picker) ─┬─ "I'm selling" ─► merchant/index ──Charge�
                      ├─ "I'm paying"  ─► customer/index ──tap──►  customer/confirm ──Done──► customer/index
                      └─ ⚙︎ ─► settings (reachable from every screen header)
 ```
+
+Android may enter from a verified `https://tap-pay.xyz/p?...` App Link or an older
+`NDEF_DISCOVERED` NFC dispatch. `+native-intent.tsx` accepts only that exact origin and path,
+then passes the untouched URL to `customer/confirm`; the normal `useTapToPay` verification
+still runs before any merchant or amount data is shown.
 
 ## Wallet
 - On first launch, `secure-key.ts` generates a private key (`generatePrivateKey` from viem **via `@tap/core` re-export**, so the app never imports viem directly) and stores it in `expo-secure-store` under `tap.wallet.v1`.
