@@ -29,3 +29,4 @@ Append-only. **Never edit or delete a row.** To change a decision, add a new row
 | D23 | 09-26 | ENS setup (proxies, roles, registrar deploy) lives in `scripts/`, not in the SDK | SDK stays read-mostly; setup is a one-off admin job |
 | D24 | 09-26 | Small commits (one logical change, ≤ ~150 lines), a four-section commit message, protected flows P1–P7 | Team request: no regressions, visible impact per change |
 | D25 | 09-26 | **No AI attribution** in commits or PRs; enforced by `.claude/settings.json`, the commit-msg hook and CI | Team request |
+| D26 | 09-26 | Public request and deep-link host is **`tap-pay.xyz`**; request URLs use `https://tap-pay.xyz/p` | We acquired and control the domain, replacing the temporary `tap.xyz` placeholder |

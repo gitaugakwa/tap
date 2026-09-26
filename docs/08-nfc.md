@@ -90,7 +90,7 @@ export async function readRequest({ timeoutMs = 30_000 } = {}): Promise<string> 
 Reader mode matters: it stops the customer phone's own wallet/HCE from answering while it reads.
 
 ## Spike (Flow track, first ~1.5h, highest-risk item)
-**Goal:** phone A (HCE) serves a hardcoded `https://tap.xyz/p?v=1&test=1` and phone B reads and displays it.
+**Goal:** phone A (HCE) serves a hardcoded `https://tap-pay.xyz/p?v=1&test=1` and phone B reads and displays it.
 
 1. `bunx create-expo-app` inside `apps/mobile` (or the scaffold), add `react-native-hce`, `react-native-nfc-manager`, `withHce.js`.
 2. `bunx expo prebuild --clean && bunx expo run:android` on both phones (or an EAS dev build APK).
