@@ -4,7 +4,7 @@ import { type HCESession, NFCTagType4, NFCTagType4NDEFContentType } from "react-
 import NfcManager, { Ndef, NfcAdapter, NfcTech } from "react-native-nfc-manager";
 import { resetHceSession } from "../src/hce-session";
 
-const SPIKE_URL = "https://tap.xyz/p?v=1&test=1";
+const SPIKE_URL = "https://tap-pay.xyz/p?v=1&test=1";
 const READ_TIMEOUT_MS = 30_000;
 
 function errorMessage(error: unknown) {
