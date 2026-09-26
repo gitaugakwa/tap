@@ -1,8 +1,6 @@
+import { cancelRead, readRequest, startCharge, stopCharge } from "@tap/react-native";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { type HCESession, NFCTagType4, NFCTagType4NDEFContentType } from "react-native-hce";
-import NfcManager, { Ndef, NfcAdapter, NfcTech } from "react-native-nfc-manager";
-import { resetHceSession } from "../src/hce-session";
 
 const SPIKE_URL = "https://tap-pay.xyz/p?v=1&test=1";
 const READ_TIMEOUT_MS = 30_000;
@@ -12,72 +10,25 @@ function errorMessage(error: unknown) {
 }
 
 export default function NfcSpikeScreen() {
-  const sessionRef = useRef<HCESession | null>(null);
   const mountedRef = useRef(true);
-  const [isHceReady, setIsHceReady] = useState(false);
   const [isServing, setIsServing] = useState(false);
   const [isReading, setIsReading] = useState(false);
-  const [status, setStatus] = useState("Initializing HCE");
+  const [status, setStatus] = useState("SDK transport ready");
   const [readUrl, setReadUrl] = useState<string | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
-    let cancelled = false;
-
-    async function initializeHce() {
-      try {
-        const session = await resetHceSession();
-        if (cancelled) {
-          if (!mountedRef.current) {
-            await session.setEnabled(false);
-          }
-          return;
-        }
-
-        sessionRef.current = session;
-        if (cancelled || !mountedRef.current) {
-          if (!mountedRef.current) {
-            await session.setEnabled(false);
-          }
-          return;
-        }
-
-        setIsServing(false);
-        setIsHceReady(true);
-        setStatus("HCE ready");
-      } catch (error) {
-        if (!cancelled && mountedRef.current) {
-          setStatus(`HCE initialization error: ${errorMessage(error)}`);
-        }
-      }
-    }
-
-    void initializeHce();
     return () => {
-      cancelled = true;
       mountedRef.current = false;
-      const session = sessionRef.current;
-      sessionRef.current = null;
-      void session?.setEnabled(false).catch(() => undefined);
-      void NfcManager.cancelTechnologyRequest({ throwOnError: false });
+      void stopCharge();
+      void cancelRead();
     };
   }, []);
 
   async function toggleHce() {
     try {
-      const session = sessionRef.current;
-      if (!session || !isHceReady) {
-        setStatus("HCE is still initializing");
-        return;
-      }
-
-      if (!mountedRef.current) {
-        await session.setEnabled(false);
-        return;
-      }
-
       if (isServing) {
-        await session.setEnabled(false);
+        await stopCharge();
         if (mountedRef.current) {
           setIsServing(false);
           setStatus("HCE stopped");
@@ -85,21 +36,9 @@ export default function NfcSpikeScreen() {
         return;
       }
 
-      await session.setApplication(
-        new NFCTagType4({
-          type: NFCTagType4NDEFContentType.URL,
-          content: SPIKE_URL,
-          writable: false,
-        }),
-      );
+      await startCharge(SPIKE_URL);
       if (!mountedRef.current) {
-        await session.setEnabled(false);
-        return;
-      }
-
-      await session.setEnabled(true);
-      if (!mountedRef.current) {
-        await session.setEnabled(false);
+        await stopCharge();
         return;
       }
 
@@ -116,45 +55,18 @@ export default function NfcSpikeScreen() {
     setIsReading(true);
     setReadUrl(null);
     setStatus("Hold this phone near the HCE phone");
-    let didTimeout = false;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
 
     try {
-      await NfcManager.start();
-      if (!mountedRef.current) {
-        return;
-      }
-
-      timeout = setTimeout(() => {
-        didTimeout = true;
-        void NfcManager.cancelTechnologyRequest({ throwOnError: false });
-      }, READ_TIMEOUT_MS);
-      await NfcManager.requestTechnology(NfcTech.Ndef, {
-        isReaderModeEnabled: true,
-        readerModeFlags: NfcAdapter.FLAG_READER_NFC_A,
-      });
-      const tag = await NfcManager.getTag();
-      const record = tag?.ndefMessage?.[0];
-      if (!record) {
-        throw new Error("Tag has no NDEF record");
-      }
-
-      const url = Ndef.uri.decodePayload(Uint8Array.from(record.payload));
+      const url = await readRequest({ timeoutMs: READ_TIMEOUT_MS });
       if (mountedRef.current) {
         setReadUrl(url);
         setStatus("Tag read successfully");
       }
     } catch (error) {
       if (mountedRef.current) {
-        setStatus(
-          didTimeout ? "Read timed out after 30 seconds" : `Read error: ${errorMessage(error)}`,
-        );
+        setStatus(`Read error: ${errorMessage(error)}`);
       }
     } finally {
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-      await NfcManager.cancelTechnologyRequest({ throwOnError: false });
       if (mountedRef.current) {
         setIsReading(false);
       }
@@ -164,18 +76,12 @@ export default function NfcSpikeScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.panel}>
-        <Text style={styles.eyebrow}>F1 TRANSPORT TEST</Text>
-        <Text style={styles.title}>NFC spike</Text>
+        <Text style={styles.eyebrow}>F2 SDK TRANSPORT TEST</Text>
+        <Text style={styles.title}>NFC SDK smoke</Text>
         <Text style={styles.url}>{SPIKE_URL}</Text>
 
-        <Pressable
-          style={[styles.button, isServing && styles.stopButton]}
-          onPress={toggleHce}
-          disabled={!isHceReady}
-        >
-          <Text style={styles.buttonText}>
-            {isServing ? "Stop HCE" : isHceReady ? "Serve test URL" : "Preparing HCE..."}
-          </Text>
+        <Pressable style={[styles.button, isServing && styles.stopButton]} onPress={toggleHce}>
+          <Text style={styles.buttonText}>{isServing ? "Stop HCE" : "Serve test URL"}</Text>
         </Pressable>
 
         <Pressable style={styles.secondaryButton} onPress={readTag} disabled={isReading}>
