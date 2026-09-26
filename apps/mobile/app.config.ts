@@ -4,7 +4,7 @@ const config: ExpoConfig = {
   name: "Tap",
   slug: "tap",
   scheme: "tap",
-  version: "0.0.2",
+  version: "0.0.3",
   orientation: "portrait",
   icon: "./assets/icon.png",
   backgroundColor: "#171713",
@@ -22,6 +22,7 @@ const config: ExpoConfig = {
   ],
   android: {
     package: "xyz.tap.demo",
+    versionCode: 2,
     permissions: ["android.permission.NFC"],
     intentFilters: [
       {
