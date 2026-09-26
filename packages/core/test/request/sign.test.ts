@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { hashTypedData, recoverTypedDataAddress, toHex } from "viem";
+import { getAddress, type Hex, hashTypedData, recoverTypedDataAddress, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import hashVector from "../../../../contracts/test/fixtures/hash-vector.json";
 import { DEFAULT_TOKEN, PAYMENT_CHAIN_ID, paymentChains } from "../../src/config/chains";
 import { TapConfigError } from "../../src/errors";
 import {
@@ -54,6 +55,30 @@ describe("TapPay typed data", () => {
         message: request,
       }),
     );
+  });
+
+  test("matches the shared Solidity hash vector", () => {
+    expect(hashVector.chainId).toBe(PAYMENT_CHAIN_ID);
+
+    const chain = paymentChains[PAYMENT_CHAIN_ID];
+    const configuredTapPay = chain.tapPay;
+    const vectorTapPay = getAddress(hashVector.verifyingContract);
+    const vectorRequest: PaymentRequest = {
+      merchant: getAddress(hashVector.request.merchant),
+      token: getAddress(hashVector.request.token),
+      amount: BigInt(hashVector.request.amount),
+      nonce: hashVector.request.nonce as Hex,
+      expiry: BigInt(hashVector.request.expiry),
+      merchantName: hashVector.request.merchantName,
+    };
+
+    Reflect.set(chain, "tapPay", vectorTapPay);
+    try {
+      expect(getTapPayDomain(hashVector.chainId).verifyingContract).toBe(vectorTapPay);
+      expect(hashRequest(vectorRequest, hashVector.chainId)).toBe(hashVector.digest as Hex);
+    } finally {
+      Reflect.set(chain, "tapPay", configuredTapPay);
+    }
   });
 
   test("canonicalizes before sign, encode, decode, and recover", async () => {
