@@ -1,0 +1,30 @@
+#!/bin/sh
+# Enforces the commit message format and INV-20 (no AI attribution).
+# See docs/09-quality-and-commits.md §4. Also run by CI over every commit in a PR.
+f="$1"
+subject=$(head -n1 "$f")
+
+case "$subject" in
+  Merge*|Revert*) exit 0 ;;
+esac
+
+if grep -qiE 'co-authored-by:.*(claude|anthropic)|generated with.*claude|claude-session|noreply@anthropic\.com' "$f"; then
+  echo "✗ commit-msg: AI attribution lines are not allowed in this repo (INV-20). Remove them and commit again." >&2
+  exit 1
+fi
+
+if ! echo "$subject" | grep -qE '^(feat|fix|test|refactor|docs|chore|build|contract)\((contracts|core|rn|mobile|server|scripts|ens|docs|repo)\): .{1,72}$'; then
+  echo "✗ commit-msg: subject must be '<type>(<scope>): <summary, max 72 chars>'" >&2
+  echo "  types:  feat fix test refactor docs chore build contract" >&2
+  echo "  scopes: contracts core rn mobile server scripts ens docs repo" >&2
+  exit 1
+fi
+
+for section in "Why:" "What changed:" "What did NOT change:" "Verification:"; do
+  if ! grep -q "^$section" "$f"; then
+    echo "✗ commit-msg: missing section '$section' (template in docs/09-quality-and-commits.md §4)" >&2
+    exit 1
+  fi
+done
+
+exit 0

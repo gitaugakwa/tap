@@ -1,0 +1,31 @@
+# Decisions log
+
+Append-only. **Never edit or delete a row.** To change a decision, add a new row that says `Supersedes Dxx`. Anything marked 🔒 elsewhere changes only through a new row here, agreed by both teammates, in the same commit as the change.
+
+| # | Date | Decision | Why |
+|---|---|---|---|
+| D01 | 09-26 | Expo **dev build** (EAS), not Expo Go | NFC needs native modules; Expo Go only runs bundled ones |
+| D02 | 09-26 | Merchant = Android (HCE emulates); customer = Android (reads); iPhone customer is a stretch | iOS card emulation needs an Apple commercial entitlement; iPhones can read |
+| D03 | 09-26 | The tap carries only the signed *request*; settlement is onchain on an L2 | True Suica is offline stored value; spending limits/session keys are future work |
+| D04 | 09-26 | **ENS: Best Use of ENSv2** is the anchor bounty | Merchant identity is the core problem |
+| D05 | 09-26 | Curvegrid/MultiBaas dropped; the merchant watches `Paid` directly with viem | No backend needed |
+| D06 | 09-26 | Uniswap out unless re-added by a new decision (then FEEDBACK.md + form) | Scope |
+| D07 | 09-26 | Currency is **USDC** on Base Sepolia, not a mock JPY token | Real token with permit |
+| D08 | 09-26 | ENS parent `tap.eth` (backup `tappay.eth`) | Short, on-brand |
+| D09 | 09-26 | ENS on Sepolia, payments on Base Sepolia | ENSv2 is Sepolia-only; Base has ~2s blocks |
+| D10 | 09-26 | Build `pay` + `payWithPermit`; demo permit | One tx for the user; `pay` keeps the SDK token-agnostic |
+| D11 | 09-26 | TypeScript + viem + Foundry; native Kotlin/Swift SDKs post-hackathon | Speed |
+| D12 | 09-26 | **Bun** (runtime, package manager, workspaces, tests) + **Hono** for any server | Team preference |
+| D13 | 09-26 | Biome for lint/format; `bun test` for TS tests | One fast tool each, Bun-native |
+| D14 | 09-26 | UI: pending → green only after onchain success; full visual design deferred | Loop first |
+| D15 | 09-26 | TapPay exposes `hashRequest` + `PAYMENT_REQUEST_TYPEHASH`; shared `hash-vector.json` | Hash-parity test prevents TS/Solidity drift |
+| D16 | 09-26 | Merchant subnames issued by our **`TapMerchantRegistrar`** on our own ENSv2 **UserRegistry** under `tap.eth`, with EAC roles (registry `ROLE_REGISTRAR`, resolver `ROLE_SET_ADDRESS` + `ROLE_SET_TEXT`) | Makes ENSv2 features central (bounty requirement); binds names to addresses at issuance |
+| D17 | 09-26 | Display name comes from the ENS text record `name`, never from the tag | The tag is untrusted |
+| D18 | 09-26 | Registration is free, permissionless, first-come; subnames never expire (`type(uint64).max`) | Hackathon simplicity; squatting noted as a gap with a "What's next" fix |
+| D19 | 09-26 | Merchants receive only `ROLE_SET_RESOLVER` on their subname | Least privilege, with a path to self-managed records later |
+| D20 | 09-26 | Folder names describe contents: `apps/mobile` (not `apps/demo`); `packages/core/src/{config,request,verify,payment,wallet,testing}`; `packages/react-native/src/{merchant,customer}` | Intuitive structure (team request) |
+| D21 | 09-26 | `VerifyFailure` includes `network_error`; `verifyRequest` never throws and never treats a network failure as verified | Fail closed with clear copy |
+| D22 | 09-26 | `@tap/core/testing` ships `createFakeCore()`; hooks accept an injectable `core` | Lets the Flow track build the UI before chain code lands |
+| D23 | 09-26 | ENS setup (proxies, roles, registrar deploy) lives in `scripts/`, not in the SDK | SDK stays read-mostly; setup is a one-off admin job |
+| D24 | 09-26 | Small commits (one logical change, ≤ ~150 lines), a four-section commit message, protected flows P1–P7 | Team request: no regressions, visible impact per change |
+| D25 | 09-26 | **No AI attribution** in commits or PRs; enforced by `.claude/settings.json`, the commit-msg hook and CI | Team request |

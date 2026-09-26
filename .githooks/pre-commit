@@ -1,0 +1,11 @@
+#!/bin/sh
+# Runs the regression gate before every commit (docs/09-quality-and-commits.md §3).
+# Enable once per clone: bun run hooks:install  (or: git config core.hooksPath .githooks)
+set -e
+
+# Before the workspace exists (very first plan commit), there is nothing to check yet.
+if [ ! -f package.json ]; then
+  exit 0
+fi
+
+bun run check
