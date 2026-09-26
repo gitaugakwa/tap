@@ -5,7 +5,7 @@
       "**",
       "!!node_modules",
       "!!.claude",
-      "!!dist",
+      "!!**/dist",
       "!!contracts/lib",
       "!!contracts/out",
       "!!contracts/cache",
