@@ -1,17 +1,18 @@
 import { Link } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { updateSettings } from "../src/settings-store";
 
 export default function RolePickerScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tap</Text>
       <Text style={styles.subtitle}>Pay and get paid with a tap</Text>
-      <Link href="/merchant" asChild>
+      <Link href="/merchant" asChild onPress={() => updateSettings({ role: "merchant" })}>
         <Pressable style={styles.button}>
           <Text style={styles.buttonText}>I'm selling</Text>
         </Pressable>
       </Link>
-      <Link href="/customer" asChild>
+      <Link href="/customer" asChild onPress={() => updateSettings({ role: "customer" })}>
         <Pressable style={styles.button}>
           <Text style={styles.buttonText}>I'm paying</Text>
         </Pressable>

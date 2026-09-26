@@ -6,7 +6,12 @@ const config: ExpoConfig = {
   scheme: "tap",
   version: "0.0.0",
   orientation: "portrait",
-  plugins: ["expo-router", "./plugins/withHce.js"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    ["expo-camera", { recordAudioAndroid: false }],
+    "./plugins/withHce.js",
+  ],
   android: {
     package: "xyz.tap.demo",
     permissions: ["android.permission.NFC"],
