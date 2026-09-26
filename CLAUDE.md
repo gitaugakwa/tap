@@ -214,7 +214,7 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 
 **Flow track**
 - [x] F1 NFC spike passed (or QR plan adopted)
-- [ ] F2 `@tap/react-native`
+- [x] F2 `@tap/react-native`
 - [ ] F3 app shell
 - [ ] F4 merchant screens
 - [ ] F5 customer screens + QR
