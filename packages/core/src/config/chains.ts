@@ -8,7 +8,7 @@ export const ENS_PARENT = "tap.eth";
 export const paymentChains = {
   [PAYMENT_CHAIN_ID]: {
     chain: baseSepolia,
-    tapPay: "0x0000000000000000000000000000000000000000" as Address,
+    tapPay: "0x4c679b2dE8AE517fF12AA34A1bE0F81913678792" as Address,
     tokens: {
       "0x036CbD53842c5426634e7929541eC2318f3dCF7e": {
         symbol: "USDC",
