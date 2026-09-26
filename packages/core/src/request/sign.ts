@@ -1,4 +1,6 @@
-import type { Hex, LocalAccount } from "viem";
+import { type Hex, hashTypedData, type LocalAccount } from "viem";
+import { getPaymentChain, PAYMENT_CHAIN_ID } from "../config/chains";
+import { TapConfigError } from "../errors";
 import type { PaymentRequest, SignedRequest } from "../types";
 
 export const PAYMENT_REQUEST_TYPES = {
@@ -12,6 +14,18 @@ export const PAYMENT_REQUEST_TYPES = {
   ],
 } as const;
 
+export function getTapPayDomain(chainId: number = PAYMENT_CHAIN_ID) {
+  const config = getPaymentChain(chainId);
+  if (!config) throw new TapConfigError(`Unsupported payment chain: ${chainId}`);
+
+  return {
+    name: "TapPay",
+    version: "1",
+    chainId,
+    verifyingContract: config.tapPay,
+  } as const;
+}
+
 export function signRequest(
   _request: PaymentRequest,
   _account: LocalAccount,
@@ -19,6 +33,11 @@ export function signRequest(
   throw new Error("not implemented: signRequest");
 }
 
-export function hashRequest(_request: PaymentRequest, _chainId?: number): Hex {
-  throw new Error("not implemented: hashRequest");
+export function hashRequest(request: PaymentRequest, chainId = PAYMENT_CHAIN_ID): Hex {
+  return hashTypedData({
+    domain: getTapPayDomain(chainId),
+    types: PAYMENT_REQUEST_TYPES,
+    primaryType: "PaymentRequest",
+    message: request,
+  });
 }
