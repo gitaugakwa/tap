@@ -199,10 +199,10 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 
 **Setup**
 - [x] T0.1 Repo scaffold + stubs + gate + hooks + CI
-- [ ] T0.2 RPCs, EAS, phones, keys, funds
+- [x] T0.2 RPCs, EAS, phones, keys, funds
 
 **SDK track**
-- [ ] S1 `tap.eth` registered (or `tappay.eth` + decision)
+- [x] S1 `tap.eth` registered (or `tappay.eth` + decision)
 - [x] S2 `TapPay.sol` + tests + hash vector
 - [x] S3 core request layer
 - [x] S4 TapPay deployed → `chains.ts` + `abi.ts`
@@ -210,7 +210,7 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 - [x] S6 registrar + ENS setup + `e2e-merchant.tap.eth`
 - [x] S7 core verification
 - [x] S8 live e2e green
-- [ ] S10 README + ENS write-up
+- [ ] S10 README + ENS write-up (demo video/GIF pending)
 
 **Flow track**
 - [x] F1 NFC spike passed (or QR plan adopted)

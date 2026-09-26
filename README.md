@@ -8,6 +8,10 @@ Base Sepolia.
 
 Built for ETHGlobal Tokyo 2026.
 
+**[Download the Android APK](https://github.com/gitaugakwa/tap/releases/download/v0.0.1/tap-android.apk)**
+· [Release notes](https://github.com/gitaugakwa/tap/releases/tag/v0.0.1)
+· Demo video coming after final two-phone integration
+
 ## The problem
 
 - Small merchants should not need dedicated payment hardware.
@@ -54,12 +58,12 @@ through the same `TapPay` request. The merchant always receives the signed USDC 
 
 Relevant implementation:
 
-- [`TapMerchantRegistrar.register`](contracts/src/TapMerchantRegistrar.sol#L68-L105)
-- [ENS merchant resolution](packages/core/src/verify/ens.ts#L27-L70)
-- [Ordered request verification](packages/core/src/verify/verify-request.ts#L108-L167)
+- [`TapMerchantRegistrar.register`](contracts/src/TapMerchantRegistrar.sol#L68-L94)
+- [ENS merchant resolution](packages/core/src/verify/ens.ts#L17-L70)
+- [Ordered request verification](packages/core/src/verify/verify-request.ts#L70-L105)
 - [Idempotent ENS setup and EAC grants](scripts/setup-ens.ts#L236-L278)
-- [Live ENS check](scripts/check-ens.ts#L12-L47)
-- [Funded end-to-end payment](scripts/e2e.ts#L61-L134)
+- [Live ENS check](scripts/check-ens.ts#L12-L56)
+- [Funded end-to-end payment](scripts/e2e.ts#L74-L133)
 
 ## Architecture
 
@@ -94,6 +98,10 @@ TapPay deployment transaction:
 [`0x5139...69d2`](https://sepolia.basescan.org/tx/0x5139eadb16cae193bca62c9d9f0098927b826742bfbc7014a84b3e79c93769d2).
 TapSwapPay deployment transaction:
 [`0x34b2...58d3`](https://sepolia.basescan.org/tx/0x34b2e25bf8728c74d02971d1b76cded41e37b7bcad95814afb4e89fd01ae58d3).
+`tap.eth` registration transaction:
+[`0xfb57...6e01`](https://sepolia.etherscan.io/tx/0xfb579015b58b4535774e189c402e55681cb59a1241d808395b13c10166c16e01).
+`e2e-merchant.tap.eth` registration transaction:
+[`0x14d3...3b13`](https://sepolia.etherscan.io/tx/0x14d3922a4a5404c587a7abc045035eb77560fdb0e4b3c180e047e43e957e3b13).
 Latest protected P3 payment:
 [`0x34c1...bb22`](https://sepolia.basescan.org/tx/0x34c1e11c324500015ba4bca9b21ed90c9c33e1c1051375567df1a580895bbb22).
 Latest exact-output Uniswap payment:
@@ -145,6 +153,11 @@ bunx expo start --dev-client
 The merchant phone serves a signed URL using Android HCE. The customer phone reads it using
 reader mode. QR transport exercises the same signed payload and verification path when NFC is
 unavailable.
+
+The downloadable `v0.0.1` APK is a signed EAS build for package `xyz.tap.demo`; its archive and
+configuration checks passed, and its SHA-256 digest is
+`983f1edf9b2c800ce53c54cbfb20e50083653a4bff7b56f47cc445dbdcaaea2e`. NFC transport was
+separately validated on a Samsung Galaxy S23 and Galaxy A56 5G, both running Android 16.
 
 ## Security model
 
