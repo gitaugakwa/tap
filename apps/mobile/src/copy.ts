@@ -8,12 +8,17 @@ export type CopyErrorCode =
   | "ens_unresolved"
   | "ens_mismatch"
   | "network_error"
+  | "network"
   | "insufficient_funds"
   | "insufficient_gas"
   | "already_paid"
   | "nfc_disabled"
   | "nfc_unsupported"
   | "read_timeout"
+  | "hce_unsupported"
+  | "charge_in_progress"
+  | "transport_unknown"
+  | "payment_reverted"
   | "fallback";
 
 const errorMessages: Record<CopyErrorCode, string> = {
@@ -26,12 +31,17 @@ const errorMessages: Record<CopyErrorCode, string> = {
   ens_unresolved: "This merchant name isn't registered.",
   ens_mismatch: "This merchant name belongs to someone else.",
   network_error: "Couldn't check the merchant. Check your connection and try again.",
+  network: "Couldn't submit the payment. Check your connection and try again.",
   insufficient_funds: "Not enough USDC to pay.",
   insufficient_gas: "Not enough Base Sepolia ETH for gas.",
   already_paid: "This request has already been paid.",
   nfc_disabled: "Turn on NFC in your phone's settings.",
   nfc_unsupported: "This phone doesn't support NFC. Use QR instead.",
   read_timeout: "No tap detected. Try again.",
+  hce_unsupported: "This phone can't serve NFC payments. Use QR instead.",
+  charge_in_progress: "Another charge is already active.",
+  transport_unknown: "Couldn't start this payment method. Use QR instead.",
+  payment_reverted: "The payment was rejected onchain. No funds were moved.",
   fallback: "Something went wrong. Try again.",
 };
 
