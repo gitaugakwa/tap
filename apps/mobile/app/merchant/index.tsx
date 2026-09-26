@@ -1,8 +1,10 @@
 import { parseAmountInput } from "@tap/core";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { AmountPad } from "../../src/components/AmountPad";
+import { Button } from "../../src/components/Button";
+import { ScreenHeader } from "../../src/components/ScreenHeader";
 import { SetupBanner } from "../../src/components/SetupBanner";
 import { copy } from "../../src/copy";
 import { useSettings } from "../../src/settings-store";
@@ -31,56 +33,49 @@ export default function MerchantAmountScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.merchantName}>{settings.merchantName}</Text>
-        <Link href="/settings" style={styles.settingsLink}>
-          ⚙︎
-        </Link>
-      </View>
+      <ScreenHeader label="Merchant" value={settings.merchantName} />
 
       {address ? <SetupBanner merchantName={settings.merchantName} address={address} /> : null}
 
-      <Text style={styles.amount}>${display}</Text>
+      <View style={styles.amountBlock}>
+        <Text style={styles.amountLabel}>{copy.labels.charge}</Text>
+        <View style={styles.amountRow}>
+          <Text style={styles.currency}>$</Text>
+          <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
+            {display}
+          </Text>
+        </View>
+      </View>
 
       <AmountPad value={input} onChange={setInput} />
 
       {amountError ? <Text style={styles.error}>{amountError}</Text> : null}
 
-      <Pressable
-        style={[styles.chargeButton, isZero && styles.chargeButtonDisabled]}
-        disabled={isZero}
-        onPress={charge}
-      >
-        <Text style={styles.chargeButtonText}>Charge ${display}</Text>
-      </Pressable>
+      <View style={styles.footer}>
+        <Button label={`Charge $${display}`} disabled={isZero} onPress={charge} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, gap: theme.spacing * 2, padding: theme.spacing * 3 },
-  header: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
-  merchantName: { color: theme.colors.foreground, fontSize: 16, fontWeight: "600" },
-  settingsLink: { color: theme.colors.muted, fontSize: 20 },
+  container: {
+    backgroundColor: theme.colors.background,
+    flex: 1,
+    gap: theme.spacing * 2,
+    padding: theme.spacing * 3,
+  },
+  amountBlock: { gap: theme.spacing / 2, marginTop: theme.spacing },
+  amountLabel: { ...theme.type.label, color: theme.colors.muted, fontSize: 10 },
+  amountRow: { alignItems: "flex-start", flexDirection: "row", gap: theme.spacing / 2 },
+  currency: { ...theme.type.display, color: theme.colors.accent, fontSize: 30, paddingTop: 12 },
   amount: {
+    ...theme.type.display,
     color: theme.colors.foreground,
-    fontSize: 56,
-    fontWeight: "700",
-    marginVertical: theme.spacing * 2,
-    textAlign: "center",
+    flexShrink: 1,
+    fontSize: 76,
+    lineHeight: 80,
   },
   error: { color: theme.colors.failure, fontSize: 14, textAlign: "center" },
-  chargeButton: {
-    backgroundColor: theme.colors.foreground,
-    borderRadius: theme.spacing * 1.5,
-    marginTop: "auto",
-    padding: theme.spacing * 2.5,
-  },
-  chargeButtonDisabled: { opacity: 0.4 },
-  chargeButtonText: {
-    color: theme.colors.background,
-    fontSize: 18,
-    fontWeight: "600",
-    textAlign: "center",
-  },
+  footer: { marginTop: "auto" },
 });

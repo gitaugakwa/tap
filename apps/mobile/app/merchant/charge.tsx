@@ -1,11 +1,13 @@
 import type { LocalAccount } from "@tap/core";
-import { formatAmount } from "@tap/core";
+import { formatAmount, getPaymentChain, PAYMENT_CHAIN_ID } from "@tap/core";
 import { createFakeCore } from "@tap/core/testing";
 import { useCharge } from "@tap/react-native";
 import { useKeepAwake } from "expo-keep-awake";
+import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button } from "../../src/components/Button";
 import { QrCode } from "../../src/components/QrCode";
 import { StatusView } from "../../src/components/StatusView";
 import { copy } from "../../src/copy";
@@ -37,10 +39,51 @@ function useCountdown(expiresAt: Date | undefined): string | null {
   return `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`;
 }
 
-function ActionButton({ label, onPress }: { label: string; onPress(): void }) {
+function TapWaves() {
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1_100, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 1_100, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
   return (
-    <Pressable style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{label}</Text>
+    <Animated.Text
+      style={[
+        styles.waves,
+        {
+          opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }),
+          transform: [
+            { rotate: "-90deg" },
+            { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] }) },
+          ],
+        },
+      ]}
+    >
+      )))
+    </Animated.Text>
+  );
+}
+
+function ExplorerLink({ txHash }: { txHash: string }) {
+  const explorer = getPaymentChain(PAYMENT_CHAIN_ID)?.chain.blockExplorers?.default.url;
+  const short = `${txHash.slice(0, 10)}…${txHash.slice(-8)}`;
+
+  if (!explorer) return <Text style={styles.txHash}>{short}</Text>;
+
+  return (
+    <Pressable
+      accessibilityRole="link"
+      onPress={() => void Linking.openURL(`${explorer}/tx/${txHash}`)}
+    >
+      <Text style={styles.txHash}>{short}</Text>
+      <Text style={styles.explorerLink}>View on explorer ↗</Text>
     </Pressable>
   );
 }
@@ -73,17 +116,39 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   }, [charge.state]);
 
   if (charge.state === "waiting") {
+    const isQr = settings.transport === "qr" && charge.url;
+
     return (
       <View style={styles.container}>
-        {settings.demoTamper ? <Text style={styles.tamperChip}>DEMO: tampered tag</Text> : null}
-        <Text style={styles.amount}>{display}</Text>
-        {settings.transport === "qr" && charge.url ? (
-          <QrCode value={charge.url} />
-        ) : (
-          <Text style={styles.prompt}>Hold your phone out to the customer</Text>
-        )}
-        {countdown ? <Text style={styles.countdown}>{countdown}</Text> : null}
-        <ActionButton label="Cancel" onPress={() => void charge.cancel()} />
+        <View style={styles.header}>
+          <Text style={styles.headerLabel}>{copy.labels.charge}</Text>
+          <Text style={styles.signal}>{isQr ? "QR" : copy.labels.nfcSignal}</Text>
+        </View>
+
+        {settings.demoTamper ? (
+          <Text style={styles.tamperChip}>{copy.labels.tamperDemo}</Text>
+        ) : null}
+
+        <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
+          {display}
+        </Text>
+
+        <View style={[styles.stage, isQr && styles.stageQr]}>
+          {isQr && charge.url ? (
+            <QrCode value={charge.url} />
+          ) : (
+            <>
+              <TapWaves />
+              <Text style={styles.stageTitle}>{copy.labels.readyToTap}</Text>
+              <Text style={styles.stageHint}>Hold your phone out to the customer</Text>
+            </>
+          )}
+        </View>
+
+        <View style={styles.footer}>
+          {countdown ? <Text style={styles.countdown}>Expires in {countdown}</Text> : null}
+          <Button label="Cancel" variant="quiet" onPress={() => void charge.cancel()} />
+        </View>
       </View>
     );
   }
@@ -91,12 +156,8 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   if (charge.state === "paid") {
     return (
       <StatusView variant="success" title={`Paid ${display}`.trim()}>
-        {charge.txHash ? (
-          <Text style={styles.txHash} selectable>
-            {`${charge.txHash.slice(0, 10)}…${charge.txHash.slice(-8)}`}
-          </Text>
-        ) : null}
-        <ActionButton label="New charge" onPress={() => router.replace("/merchant")} />
+        {charge.txHash ? <ExplorerLink txHash={charge.txHash} /> : null}
+        <Button label="New charge" onPress={() => router.replace("/merchant")} />
       </StatusView>
     );
   }
@@ -104,13 +165,14 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
   if (charge.state === "expired") {
     return (
       <StatusView variant="neutral" title="Request expired">
-        <ActionButton
+        <Button
           label="Try again"
           onPress={() => {
             charge.reset();
             void charge.start(amount);
           }}
         />
+        <Button label="Back" variant="quiet" onPress={() => router.replace("/merchant")} />
       </StatusView>
     );
   }
@@ -122,13 +184,14 @@ function ChargeView({ account, amount }: { account: LocalAccount; amount: bigint
         title="Charge failed"
         detail={copy.getErrorMessage(charge.error?.code)}
       >
-        <ActionButton
+        <Button
           label="Try again"
           onPress={() => {
             charge.reset();
             void charge.start(amount);
           }}
         />
+        <Button label="Back" variant="quiet" onPress={() => router.replace("/merchant")} />
       </StatusView>
     );
   }
@@ -150,32 +213,59 @@ export default function MerchantChargeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
+    backgroundColor: theme.colors.background,
     flex: 1,
     gap: theme.spacing * 2,
-    justifyContent: "center",
     padding: theme.spacing * 3,
   },
-  amount: { color: theme.colors.foreground, fontSize: 56, fontWeight: "700" },
-  prompt: { color: theme.colors.muted, fontSize: 18, textAlign: "center" },
-  countdown: { color: theme.colors.muted, fontSize: 16 },
-  txHash: { color: theme.colors.muted, fontSize: 14 },
-  tamperChip: {
-    backgroundColor: theme.colors.failure,
-    borderRadius: 999,
-    color: theme.colors.background,
-    fontSize: 12,
-    fontWeight: "700",
-    paddingHorizontal: theme.spacing * 1.5,
-    paddingVertical: theme.spacing / 2,
+  header: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
+  headerLabel: { ...theme.type.label, color: theme.colors.muted, fontSize: 10 },
+  signal: { ...theme.type.label, color: theme.colors.accent, fontSize: 11 },
+  amount: {
+    ...theme.type.display,
+    color: theme.colors.foreground,
+    fontSize: 72,
+    lineHeight: 76,
   },
-  button: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
+  stage: {
+    alignItems: "center",
+    backgroundColor: "#2a2a25",
+    borderColor: "#5b5b51",
+    borderRadius: theme.radius.md,
+    borderStyle: "dashed",
     borderWidth: 1,
-    marginTop: theme.spacing,
-    paddingHorizontal: theme.spacing * 3,
-    paddingVertical: theme.spacing * 1.5,
+    flex: 1,
+    gap: theme.spacing,
+    justifyContent: "center",
+    padding: theme.spacing * 2,
   },
-  buttonText: { color: theme.colors.foreground, fontSize: 16, fontWeight: "600" },
+  stageQr: { backgroundColor: theme.colors.background, borderStyle: "solid" },
+  waves: {
+    ...theme.type.display,
+    color: theme.colors.accent,
+    fontSize: 44,
+    letterSpacing: -6,
+    marginBottom: theme.spacing,
+  },
+  stageTitle: { color: theme.colors.foreground, fontSize: 17, fontWeight: "600" },
+  stageHint: { color: theme.colors.muted, fontSize: 13, textAlign: "center" },
+  countdown: { ...theme.type.label, color: theme.colors.muted, fontSize: 10, textAlign: "center" },
+  footer: { gap: theme.spacing * 1.5 },
+  tamperChip: {
+    ...theme.type.label,
+    alignSelf: "flex-start",
+    backgroundColor: theme.colors.failure,
+    color: theme.colors.surface,
+    fontSize: 9,
+    paddingHorizontal: theme.spacing,
+    paddingVertical: 4,
+  },
+  txHash: { color: theme.colors.muted, fontSize: 13, textAlign: "center" },
+  explorerLink: {
+    ...theme.type.label,
+    color: theme.colors.accent,
+    fontSize: 10,
+    paddingTop: 4,
+    textAlign: "center",
+  },
 });
