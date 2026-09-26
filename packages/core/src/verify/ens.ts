@@ -1,20 +1,73 @@
-import type { Address, Hash, LocalAccount } from "viem";
+import {
+  type Address,
+  getAddress,
+  type Hash,
+  isAddressEqual,
+  type LocalAccount,
+  zeroAddress,
+} from "viem";
+import { normalize } from "viem/ens";
+import { ENS_PARENT } from "../config/chains";
+import { getEnsClient } from "../config/clients";
+import { ENS_DISPLAY_NAME_KEY } from "../config/constants";
 import type { MerchantProfile, MerchantSetupCheck } from "../types";
 
-export function isUnderParent(_name: string): boolean {
-  throw new Error("not implemented: isUnderParent");
+const LABEL_PATTERN = /^[a-z0-9-]+$/;
+
+export function isUnderParent(name: string): boolean {
+  try {
+    const normalized = normalize(name);
+    const suffix = `.${ENS_PARENT}`;
+    if (!normalized.endsWith(suffix)) return false;
+
+    const label = normalized.slice(0, -suffix.length);
+    return (
+      label.length >= 3 &&
+      label.length <= 32 &&
+      !label.includes(".") &&
+      !label.startsWith("-") &&
+      !label.endsWith("-") &&
+      LABEL_PATTERN.test(label)
+    );
+  } catch {
+    return false;
+  }
 }
 
-export function resolveMerchant(_name: string): Promise<Address | null> {
-  throw new Error("not implemented: resolveMerchant");
+export async function resolveMerchant(name: string): Promise<Address | null> {
+  const address = await getEnsClient().getEnsAddress({ name: normalize(name) });
+  if (address === null || isAddressEqual(address, zeroAddress)) return null;
+  return getAddress(address);
 }
 
-export function getMerchantProfile(_name: string): Promise<MerchantProfile> {
-  throw new Error("not implemented: getMerchantProfile");
+export async function getMerchantProfile(name: string): Promise<MerchantProfile> {
+  const normalized = normalize(name);
+  const client = getEnsClient();
+  const [address, displayName] = await Promise.all([
+    client.getEnsAddress({ name: normalized }),
+    client.getEnsText({ name: normalized, key: ENS_DISPLAY_NAME_KEY }),
+  ]);
+
+  return {
+    address: address === null || isAddressEqual(address, zeroAddress) ? null : getAddress(address),
+    displayName,
+  };
 }
 
-export function checkMerchantSetup(_name: string, _address: Address): Promise<MerchantSetupCheck> {
-  throw new Error("not implemented: checkMerchantSetup");
+export async function checkMerchantSetup(
+  name: string,
+  address: Address,
+): Promise<MerchantSetupCheck> {
+  if (!isUnderParent(name)) return { ok: false, reason: "not_under_parent" };
+
+  try {
+    const profile = await getMerchantProfile(name);
+    if (profile.address === null) return { ok: false, reason: "ens_unresolved" };
+    if (!isAddressEqual(profile.address, address)) return { ok: false, reason: "ens_mismatch" };
+    return { ok: true, displayName: profile.displayName };
+  } catch {
+    return { ok: false, reason: "network_error" };
+  }
 }
 
 export function registerMerchant(
