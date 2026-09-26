@@ -30,3 +30,4 @@ Append-only. **Never edit or delete a row.** To change a decision, add a new row
 | D24 | 09-26 | Small commits (one logical change, ≤ ~150 lines), a four-section commit message, protected flows P1–P7 | Team request: no regressions, visible impact per change |
 | D25 | 09-26 | **No AI attribution** in commits or PRs; enforced by `.claude/settings.json`, the commit-msg hook and CI | Team request |
 | D26 | 09-26 | Public request and deep-link host is **`tap-pay.xyz`**; request URLs use `https://tap-pay.xyz/p` | We acquired and control the domain, replacing the temporary `tap.xyz` placeholder |
+| D27 | 09-26 | F1 passed with a Samsung Galaxy S23 (`SM-S911U1`, Android 16) serving HCE and Galaxy A56 5G (`SM-A566B`, Android 16) reading: 10/10 chooser-free reads under 2 seconds with Google Wallet as default; the locked HCE phone did not read | Validates NFC for the demo while preserving the expected unlocked, foreground-only operating constraint |
