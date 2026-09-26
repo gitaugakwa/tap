@@ -60,7 +60,7 @@ Record with the real chain (no fake core). Keep the explorer tab of the `Paid` t
 
 ## Submission checklist
 - [ ] Repo is **public**, README complete, `main` green (CI badge)
-- [ ] APK attached to a GitHub release (the "live demo link"; plus the web verifier if A2 shipped)
+- [x] APK attached to a GitHub release (the "live demo link"; plus the web verifier if A2 shipped)
 - [ ] Demo video uploaded (2–4 min) and linked
 - [ ] ENS requirements: ENSv2 on Sepolia ✓, features central ✓, no hard-coded values ✓, live demo link ✓, open source ✓
 - [ ] Partner prizes selected (max 3; a multi-track partner counts once): **ENS: Best Use of ENSv2**. Add another partner only if an add-on genuinely integrates it (e.g. Uniswap via A8, which also needs `FEEDBACK.md` + the feedback form at https://developers.uniswap.org/hackathon-feedback)
