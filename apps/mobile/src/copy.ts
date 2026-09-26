@@ -63,4 +63,21 @@ function ensVerifiedLabel(ensName: string): string {
   return `${ensName} ✓`;
 }
 
-export const copy = { errorMessages, getErrorMessage, ensVerifiedLabel } as const;
+const labels = {
+  amountDue: "Amount due",
+  charge: "Charge",
+  customerRole: "I'm paying",
+  identityCheck: "Identity check",
+  live: "Live",
+  merchantRole: "I'm selling",
+  nfcSignal: "NFC ))",
+  noEmulation: "This phone can't serve taps. QR only.",
+  payWith: "Pay with",
+  readyToTap: "Ready to tap",
+  tagline: "Pay and get paid with a tap",
+  tamperDemo: "Demo: tampered tag",
+  verifiedToPay: "Verified to pay",
+  yourWallet: "Your wallet",
+} as const;
+
+export const copy = { errorMessages, getErrorMessage, ensVerifiedLabel, labels } as const;
