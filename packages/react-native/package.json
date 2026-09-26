@@ -19,6 +19,8 @@
     "react-native-nfc-manager": "4.0.0-beta.9"
   },
   "devDependencies": {
+    "@types/react-test-renderer": "19.3.0",
+    "react-test-renderer": "19.2.3",
     "tsup": "8.5.1",
     "typescript": "5.9.3"
   }
