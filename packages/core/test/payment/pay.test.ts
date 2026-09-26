@@ -13,7 +13,13 @@ import { tapPayAbi } from "../../src/config/abi";
 import { DEFAULT_TOKEN, PAYMENT_CHAIN_ID } from "../../src/config/chains";
 import { configureTap } from "../../src/config/clients";
 import { TapPayError } from "../../src/errors";
-import { isPaid, mapPaymentError, payWithPermit, waitForPayment } from "../../src/payment/pay";
+import {
+  isPaid,
+  mapPaymentError,
+  payWithPermit,
+  waitForAllowance,
+  waitForPayment,
+} from "../../src/payment/pay";
 import type { SignedRequest } from "../../src/types";
 
 const account = privateKeyToAccount(generatePrivateKey());
@@ -71,6 +77,23 @@ describe("payment prechecks", () => {
       code: "insufficient_funds",
     });
     expect(readContract).toHaveBeenCalledTimes(1);
+  });
+
+  test("waits until a confirmed approval is visible through the RPC", async () => {
+    const readContract = mock(async () =>
+      readContract.mock.calls.length === 1 ? 0n : signed.request.amount,
+    );
+
+    await expect(
+      waitForAllowance(
+        { readContract } as unknown as PublicClient,
+        signed.request.token,
+        account.address,
+        "0x3333333333333333333333333333333333333333",
+        signed.request.amount,
+      ),
+    ).resolves.toBeUndefined();
+    expect(readContract).toHaveBeenCalledTimes(2);
   });
 });
 

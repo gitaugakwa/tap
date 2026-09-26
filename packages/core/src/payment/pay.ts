@@ -6,6 +6,7 @@ import {
   type Hex,
   InsufficientFundsError,
   type LocalAccount,
+  type PublicClient,
   parseAbi,
 } from "viem";
 import { tapPayAbi } from "../config/abi";
@@ -83,6 +84,26 @@ async function assertFunds(signed: SignedRequest, owner: Address): Promise<void>
   }
 }
 
+export async function waitForAllowance(
+  client: PublicClient,
+  token: Address,
+  owner: Address,
+  spender: Address,
+  amount: bigint,
+): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const allowance = await client.readContract({
+      address: token,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [owner, spender],
+    });
+    if (allowance >= amount) return;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new TapPayError("network", "Token approval is not visible yet");
+}
+
 export async function payWithPermit(signed: SignedRequest, account: LocalAccount): Promise<Hash> {
   try {
     const chain = settlementConfig(signed);
@@ -102,8 +123,55 @@ export async function payWithPermit(signed: SignedRequest, account: LocalAccount
   }
 }
 
-export function pay(_signed: SignedRequest, _account: LocalAccount): Promise<Hash> {
-  throw new Error("not implemented: pay");
+export async function pay(signed: SignedRequest, account: LocalAccount): Promise<Hash> {
+  try {
+    const chain = settlementConfig(signed);
+    await assertFunds(signed, account.address);
+    const client = getPaymentClient();
+    const allowance = await client.readContract({
+      address: signed.request.token,
+      abi: erc20Abi,
+      functionName: "allowance",
+      args: [account.address, chain.tapPay],
+    });
+    const wallet = getPaymentWalletClient(account);
+
+    if (allowance < signed.request.amount) {
+      const { request: approval } = await client.simulateContract({
+        address: signed.request.token,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [chain.tapPay, signed.request.amount],
+        account,
+      });
+      const approvalHash = await wallet.writeContract(approval);
+      const approvalReceipt = await client.waitForTransactionReceipt({
+        hash: approvalHash,
+        confirmations: 1,
+      });
+      if (approvalReceipt.status !== "success") {
+        throw new TapPayError("unknown", "Token approval reverted");
+      }
+      await waitForAllowance(
+        client,
+        signed.request.token,
+        account.address,
+        chain.tapPay,
+        signed.request.amount,
+      );
+    }
+
+    const { request } = await client.simulateContract({
+      address: chain.tapPay,
+      abi: tapPayAbi,
+      functionName: "pay",
+      args: [signed.request, signed.signature],
+      account,
+    });
+    return await wallet.writeContract(request);
+  } catch (error) {
+    throw mapPaymentError(error);
+  }
 }
 
 export async function waitForPayment(hash: Hash): Promise<"success" | "reverted"> {
