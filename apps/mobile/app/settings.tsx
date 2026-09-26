@@ -9,6 +9,7 @@ import {
 import type { TamperField } from "@tap/core/testing";
 import * as Clipboard from "expo-clipboard";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import { type ReactNode, useEffect, useState } from "react";
 import {
   Alert,
@@ -41,6 +42,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { address, isLoading, resetWallet } = useWallet();
   const [settings, setSettings] = useSettings();
   const [balances, setBalances] = useState<WalletBalances | null>(null);
@@ -86,7 +88,14 @@ export default function SettingsScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.container}>
+      <View style={styles.screenHeader}>
+        <Text style={styles.screenTitle}>Settings</Text>
+        <Pressable accessibilityRole="button" hitSlop={12} onPress={() => router.back()}>
+          <Text style={styles.close}>Close</Text>
+        </Pressable>
+      </View>
+
       <Section title="Wallet">
         <Text style={styles.address} selectable>
           {isLoading ? "Loading…" : (address ?? "No wallet")}
@@ -204,43 +213,72 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { gap: theme.spacing * 3, padding: theme.spacing * 3 },
-  section: { gap: theme.spacing },
-  sectionTitle: { color: theme.colors.foreground, fontSize: 20, fontWeight: "700" },
-  address: { color: theme.colors.foreground, fontSize: 14 },
-  value: { color: theme.colors.foreground, fontSize: 16 },
-  muted: { color: theme.colors.muted, fontSize: 16 },
+  screen: { backgroundColor: theme.colors.background },
+  screenHeader: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between" },
+  screenTitle: { ...theme.type.display, color: theme.colors.foreground, fontSize: 34 },
+  close: { ...theme.type.label, color: theme.colors.muted, fontSize: 11 },
+  container: {
+    backgroundColor: theme.colors.background,
+    gap: theme.spacing * 3.5,
+    padding: theme.spacing * 3,
+    paddingBottom: theme.spacing * 6,
+  },
+  section: { gap: theme.spacing * 1.25 },
+  sectionTitle: {
+    ...theme.type.label,
+    borderBottomColor: theme.colors.line,
+    borderBottomWidth: 1,
+    color: theme.colors.muted,
+    fontSize: 10,
+    paddingBottom: theme.spacing,
+  },
+  address: { color: theme.colors.foreground, fontSize: 13, lineHeight: 19 },
+  value: { color: theme.colors.foreground, fontSize: 15 },
+  muted: { color: theme.colors.muted, fontSize: 13, lineHeight: 19 },
   input: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     color: theme.colors.foreground,
     fontSize: 16,
     padding: theme.spacing * 1.5,
   },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing / 1.5 },
   switchRow: { alignItems: "center", flexDirection: "row", justifyContent: "space-between" },
   segment: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
+    alignItems: "center",
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
-    flex: 1,
-    padding: theme.spacing * 1.5,
+    flexGrow: 1,
+    minWidth: 46,
+    paddingVertical: theme.spacing * 1.25,
   },
-  segmentActive: { backgroundColor: theme.colors.foreground, borderColor: theme.colors.foreground },
-  segmentText: { color: theme.colors.foreground, fontWeight: "600", textAlign: "center" },
-  segmentTextActive: { color: theme.colors.background },
+  segmentActive: { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent },
+  segmentText: { ...theme.type.label, color: theme.colors.muted, fontSize: 11 },
+  segmentTextActive: { color: theme.colors.accentText },
   secondaryButton: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     padding: theme.spacing * 1.5,
   },
-  secondaryButtonText: { color: theme.colors.foreground, fontWeight: "600", textAlign: "center" },
+  secondaryButtonText: {
+    ...theme.type.label,
+    color: theme.colors.foreground,
+    fontSize: 11,
+    textAlign: "center",
+  },
   destructiveButton: {
-    backgroundColor: theme.colors.failure,
-    borderRadius: theme.spacing,
+    borderColor: theme.colors.failure,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
     padding: theme.spacing * 1.5,
   },
-  destructiveButtonText: { color: theme.colors.background, fontWeight: "600", textAlign: "center" },
+  destructiveButtonText: {
+    ...theme.type.label,
+    color: theme.colors.failure,
+    fontSize: 11,
+    textAlign: "center",
+  },
 });

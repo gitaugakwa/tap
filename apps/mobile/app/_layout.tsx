@@ -3,7 +3,8 @@ import "react-native-get-random-values";
 import { configureTap } from "@tap/core";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StatusBar, StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { resetHceSession } from "../src/hce-session";
 import { useSettings } from "../src/settings-store";
 import { theme } from "../src/theme";
@@ -27,28 +28,48 @@ function FakeChainChip() {
   );
 }
 
+function Shell() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.shell, { paddingBottom: insets.bottom, paddingTop: insets.top }]}>
+      <Stack
+        screenOptions={{
+          animation: "fade",
+          contentStyle: { backgroundColor: theme.colors.background },
+          headerShown: false,
+        }}
+      />
+      <FakeChainChip />
+    </View>
+  );
+}
+
 export default function RootLayout() {
   useEffect(() => {
     void resetHceSession().catch(() => undefined);
   }, []);
 
   return (
-    <WalletProvider>
-      <Stack screenOptions={{ headerTitle: "Tap" }} />
-      <FakeChainChip />
-    </WalletProvider>
+    <SafeAreaProvider>
+      <StatusBar barStyle="light-content" />
+      <WalletProvider>
+        <Shell />
+      </WalletProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  shell: { backgroundColor: theme.colors.background, flex: 1 },
   chip: {
     alignSelf: "center",
     backgroundColor: theme.colors.failure,
-    borderRadius: 999,
+    borderRadius: theme.radius.pill,
+    bottom: theme.spacing * 2,
     paddingHorizontal: theme.spacing * 1.5,
     paddingVertical: theme.spacing / 2,
     position: "absolute",
-    top: theme.spacing * 6,
   },
-  chipText: { color: theme.colors.background, fontSize: 12, fontWeight: "700" },
+  chipText: { ...theme.type.label, color: theme.colors.surface, fontSize: 9 },
 });
