@@ -4,6 +4,7 @@ import { useTapToPay } from "@tap/react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Button } from "../../src/components/Button";
 import { MerchantCard } from "../../src/components/MerchantCard";
 import { StatusView } from "../../src/components/StatusView";
 import { copy } from "../../src/copy";
@@ -13,9 +14,28 @@ import { theme } from "../../src/theme";
 import { useWallet } from "../../src/wallet/WalletProvider";
 
 function DoneButton({ onPress }: { onPress(): void }) {
+  return <Button label="Done" variant="secondary" onPress={onPress} />;
+}
+
+function AssetOption({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress(): void;
+}) {
   return (
-    <Pressable style={styles.secondaryButton} onPress={onPress}>
-      <Text style={styles.secondaryButtonText}>Done</Text>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      style={[styles.assetOption, selected && styles.assetOptionActive]}
+      onPress={onPress}
+    >
+      <Text style={[styles.assetOptionText, selected && styles.assetOptionTextActive]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -66,56 +86,40 @@ function ConfirmView({ account, url }: { account: LocalAccount; url: string }) {
           amount={verified.displayAmount}
           expiresAt={verified.expiresAt}
         />
-        <View style={styles.assetPicker}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: paymentAsset === "usdc" }}
-            style={[styles.assetOption, paymentAsset === "usdc" && styles.assetOptionActive]}
-            onPress={() => selectAsset("usdc")}
-          >
-            <Text
-              style={[
-                styles.assetOptionText,
-                paymentAsset === "usdc" && styles.assetOptionTextActive,
-              ]}
-            >
-              USDC
+
+        <View style={styles.payWith}>
+          <Text style={styles.payWithLabel}>{copy.labels.payWith}</Text>
+          <View style={styles.assetPicker}>
+            <AssetOption
+              label="USDC"
+              selected={paymentAsset === "usdc"}
+              onPress={() => selectAsset("usdc")}
+            />
+            <AssetOption
+              label="ETH"
+              selected={paymentAsset === "eth"}
+              onPress={() => selectAsset("eth")}
+            />
+          </View>
+          {paymentAsset === "eth" ? (
+            <Text style={[styles.quoteText, pay.quoteState === "failed" && styles.quoteError]}>
+              {ethQuote
+                ? `Maximum ${formatTokenUnits(ethQuote.amountInMaximum, 18)} ETH`
+                : pay.quoteState === "failed"
+                  ? copy.getErrorMessage(pay.quoteError?.code)
+                  : "Getting ETH quote…"}
             </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: paymentAsset === "eth" }}
-            style={[styles.assetOption, paymentAsset === "eth" && styles.assetOptionActive]}
-            onPress={() => selectAsset("eth")}
-          >
-            <Text
-              style={[
-                styles.assetOptionText,
-                paymentAsset === "eth" && styles.assetOptionTextActive,
-              ]}
-            >
-              ETH
-            </Text>
-          </Pressable>
+          ) : null}
         </View>
-        {paymentAsset === "eth" ? (
-          <Text style={[styles.quoteText, pay.quoteState === "failed" && styles.quoteError]}>
-            {ethQuote
-              ? `Maximum ${formatTokenUnits(ethQuote.amountInMaximum, 18)} ETH`
-              : pay.quoteState === "failed"
-                ? copy.getErrorMessage(pay.quoteError?.code)
-                : "Getting ETH quote..."}
-          </Text>
-        ) : null}
-        <Pressable
-          disabled={payDisabled}
-          style={[styles.payButton, payDisabled && styles.payButtonDisabled]}
-          onPress={() => void pay.confirm(paymentAsset === "eth" ? ethQuote : undefined)}
-        >
-          <Text style={styles.payButtonText}>
-            Pay {verified.displayAmount} in {paymentAsset === "eth" ? "ETH" : "USDC"}
-          </Text>
-        </Pressable>
+
+        <View style={styles.actions}>
+          <Button
+            label={`Pay ${verified.displayAmount} in ${paymentAsset === "eth" ? "ETH" : "USDC"}`}
+            disabled={payDisabled}
+            onPress={() => void pay.confirm(paymentAsset === "eth" ? ethQuote : undefined)}
+          />
+          <Button label="Not now" variant="quiet" onPress={done} />
+        </View>
       </View>
     );
   }
@@ -197,26 +201,19 @@ export default function CustomerConfirmScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: theme.colors.background,
     flex: 1,
-    gap: theme.spacing * 3,
+    gap: theme.spacing * 2.5,
     justifyContent: "center",
     padding: theme.spacing * 3,
   },
-  payButton: {
-    backgroundColor: theme.colors.foreground,
-    borderRadius: theme.spacing * 1.5,
-    padding: theme.spacing * 2.5,
-  },
-  payButtonDisabled: { opacity: 0.45 },
-  payButtonText: {
-    color: theme.colors.background,
-    fontSize: 20,
-    fontWeight: "700",
-    textAlign: "center",
-  },
+  actions: { gap: theme.spacing * 1.5 },
+  payWith: { gap: theme.spacing },
+  payWithLabel: { ...theme.type.label, color: theme.colors.muted, fontSize: 10 },
   assetPicker: {
-    backgroundColor: "#e5e7eb",
-    borderRadius: theme.spacing,
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
     flexDirection: "row",
     padding: 3,
   },
@@ -225,20 +222,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     flex: 1,
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 46,
   },
-  assetOptionActive: { backgroundColor: theme.colors.background },
-  assetOptionText: { color: theme.colors.muted, fontSize: 16, fontWeight: "600" },
-  assetOptionTextActive: { color: theme.colors.foreground },
-  quoteText: { color: theme.colors.muted, fontSize: 14, textAlign: "center" },
-  quoteError: { color: theme.colors.failure },
-  secondaryButton: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
-    borderWidth: 1,
-    marginTop: theme.spacing,
-    paddingHorizontal: theme.spacing * 3,
-    paddingVertical: theme.spacing * 1.5,
-  },
-  secondaryButtonText: { color: theme.colors.foreground, fontSize: 16, fontWeight: "600" },
+  assetOptionActive: { backgroundColor: theme.colors.accent },
+  assetOptionText: { ...theme.type.label, color: theme.colors.muted, fontSize: 12 },
+  assetOptionTextActive: { color: theme.colors.accentText },
+  quoteText: { color: theme.colors.muted, fontSize: 13, textAlign: "center" },
+  quoteError: { color: theme.colors.warning },
 });
