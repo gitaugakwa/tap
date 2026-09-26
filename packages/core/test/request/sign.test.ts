@@ -1,8 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { hashTypedData, toHex } from "viem";
+import { hashTypedData, recoverTypedDataAddress, toHex } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { DEFAULT_TOKEN, PAYMENT_CHAIN_ID, paymentChains } from "../../src/config/chains";
 import { TapConfigError } from "../../src/errors";
-import { getTapPayDomain, hashRequest, PAYMENT_REQUEST_TYPES } from "../../src/request/sign";
+import {
+  getTapPayDomain,
+  hashRequest,
+  PAYMENT_REQUEST_TYPES,
+  signRequest,
+} from "../../src/request/sign";
 import type { PaymentRequest } from "../../src/types";
 
 const request: PaymentRequest = {
@@ -47,5 +53,22 @@ describe("TapPay typed data", () => {
         message: request,
       }),
     );
+  });
+
+  test("signs a request with the merchant account", async () => {
+    const account = privateKeyToAccount(generatePrivateKey());
+    const merchantRequest = { ...request, merchant: account.address };
+    const signed = await signRequest(merchantRequest, account);
+
+    expect(signed).toMatchObject({ chainId: PAYMENT_CHAIN_ID, request: merchantRequest });
+    expect(
+      await recoverTypedDataAddress({
+        domain: getTapPayDomain(),
+        types: PAYMENT_REQUEST_TYPES,
+        primaryType: "PaymentRequest",
+        message: merchantRequest,
+        signature: signed.signature,
+      }),
+    ).toBe(account.address);
   });
 });

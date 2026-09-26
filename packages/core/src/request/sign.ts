@@ -27,10 +27,17 @@ export function getTapPayDomain(chainId: number = PAYMENT_CHAIN_ID) {
 }
 
 export function signRequest(
-  _request: PaymentRequest,
-  _account: LocalAccount,
+  request: PaymentRequest,
+  account: LocalAccount,
 ): Promise<SignedRequest> {
-  throw new Error("not implemented: signRequest");
+  return account
+    .signTypedData({
+      domain: getTapPayDomain(),
+      types: PAYMENT_REQUEST_TYPES,
+      primaryType: "PaymentRequest",
+      message: request,
+    })
+    .then((signature) => ({ chainId: PAYMENT_CHAIN_ID, request, signature }));
 }
 
 export function hashRequest(request: PaymentRequest, chainId = PAYMENT_CHAIN_ID): Hex {
