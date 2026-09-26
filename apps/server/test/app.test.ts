@@ -16,15 +16,19 @@ describe("public server", () => {
     expect(body).toContain(
       'href="https://github.com/gitaugakwa/tap/tree/main/packages/react-native"',
     );
+    expect(body.match(/target="_blank" rel="noreferrer"/g)).toHaveLength(2);
     expect(body.match(/class="ticker-line"/g)).toHaveLength(2);
     expect(body).toContain(apkDownloadUrl);
   });
 
   test("serves the responsive stylesheet", async () => {
     const response = await app.request("/styles.css");
+    const body = await response.text();
+
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/css");
-    expect(await response.text()).toContain("@media (max-width:800px)");
+    expect(body).toContain("@media (max-width:800px)");
+    expect(body).toContain("footer p:nth-child(2) { text-align:center; }");
   });
 
   test("never renders unverified payment query data", async () => {
