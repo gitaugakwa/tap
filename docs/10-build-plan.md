@@ -139,8 +139,18 @@ Cut from the bottom. **Never cut the core loop.** Each add-on is its own branch 
 | A5 | iPhone as customer (reader only) | Flow | Requires an iOS dev build |
 | A6 | Spending limits / session keys | SDK | Big; "What's next" otherwise |
 | A7 | `tap.signer` key rotation via EAC | SDK | "What's next" otherwise |
-| A8 | Uniswap (pay any token) + FEEDBACK.md + feedback form | SDK | Only if a decision re-adds it |
+| A8 | Uniswap exact-output payments + FEEDBACK.md + feedback form | SDK | Re-added by D31; direct USDC remains protected |
 | A9 | npm packaging polish | SDK | |
+
+### A8 · Uniswap exact-output payments · depends: P1–P3
+1. Add and test an atomic `TapSwapPay` adapter without changing `TapPay` or `PaymentRequest`.
+2. Support native ETH and standard ERC-20 inputs; reject unsupported token mechanics and invalid route boundaries.
+3. Quote exact-output routes to USDC, cap input with explicit slippage, and bind Permit2 authorization to the request expiry.
+4. Keep direct USDC as the default and expose Uniswap as an optional customer-side payment method.
+5. Prove merchant USDC settlement, refund, replay protection and the original direct path in live and offline tests.
+6. Document deployed addresses and transactions, add `FEEDBACK.md`, and complete the Uniswap hackathon feedback form.
+
+**Accept:** the merchant receives the exact signed USDC amount; the customer never spends above the displayed maximum; unused input is refunded; any swap or settlement failure is atomic; `bun run check`, `bun run e2e`, and a funded Uniswap E2E are green.
 
 ## Risk register
 | Risk | Signal | Response |
