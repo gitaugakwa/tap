@@ -39,7 +39,7 @@ function compactWithWidths(amount: bigint, expiry: bigint): string {
   url.searchParams.set("n", "a");
   url.searchParams.set("a", amount.toString());
   url.searchParams.set("x", expiry.toString());
-  return url.toString().replace("https://tap.xyz", "x:");
+  return url.toString().replace(url.origin, "x:");
 }
 
 describe("request URL codec", () => {
@@ -49,7 +49,7 @@ describe("request URL codec", () => {
 
   test("emits stable ordered output under 400 bytes", () => {
     expect(encoded).toBe(
-      `https://tap.xyz/p?v=1&c=84532&m=0x1111111111111111111111111111111111111111&n=yoyogi-market.tap.eth&t=0x036CbD53842c5426634e7929541eC2318f3dCF7e&a=5000000&x=1790000000&k=0x0101010101010101010101010101010101010101010101010101010101010101&s=${signed.signature}`,
+      `https://tap-pay.xyz/p?v=1&c=84532&m=0x1111111111111111111111111111111111111111&n=yoyogi-market.tap.eth&t=0x036CbD53842c5426634e7929541eC2318f3dCF7e&a=5000000&x=1790000000&k=0x0101010101010101010101010101010101010101010101010101010101010101&s=${signed.signature}`,
     );
     expect(new TextEncoder().encode(encoded).byteLength).toBeLessThan(400);
   });

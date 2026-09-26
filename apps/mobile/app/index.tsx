@@ -17,6 +17,7 @@ export default function RolePickerScreen() {
         </Pressable>
       </Link>
       <Link href="/settings">Settings</Link>
+      <Link href="/spike">NFC spike</Link>
     </View>
   );
 }

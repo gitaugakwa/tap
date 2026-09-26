@@ -213,8 +213,8 @@ Tick only when the task's acceptance criteria in `docs/10-build-plan.md` pass. W
 - [ ] S10 README + ENS write-up
 
 **Flow track**
-- [ ] F1 NFC spike passed (or QR plan adopted)
-- [ ] F2 `@tap/react-native`
+- [x] F1 NFC spike passed (or QR plan adopted)
+- [x] F2 `@tap/react-native`
 - [ ] F3 app shell
 - [ ] F4 merchant screens
 - [ ] F5 customer screens + QR

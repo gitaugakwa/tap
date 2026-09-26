@@ -19,6 +19,8 @@
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-get-random-values": "1.11.0",
+    "react-native-hce": "git+https://github.com/appidea/react-native-hce.git#12468c5abb0c186559ec6201d9fa9da2ae439fe8",
+    "react-native-nfc-manager": "4.0.0-beta.9",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.0"
   },

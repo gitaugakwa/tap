@@ -43,7 +43,7 @@ describe("chain config", () => {
 
 test("request constants match the protocol", () => {
   expect(REQUEST_TTL_SECONDS).toBe(120);
-  expect(REQUEST_URL_BASE).toBe("https://tap.xyz/p");
+  expect(REQUEST_URL_BASE).toBe("https://tap-pay.xyz/p");
   expect(REQUEST_URL_VERSION).toBe(1);
   expect(ENS_DISPLAY_NAME_KEY).toBe("name");
   expect(MAX_CHARGE).toBe(1_000_000_000n);

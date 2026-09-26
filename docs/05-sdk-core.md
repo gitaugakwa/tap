@@ -167,12 +167,12 @@ export const DEFAULT_TOKEN = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as Add
 ```
 Token lookups are case-insensitive (`getAddress` both sides).
 
-`src/config/constants.ts`: `REQUEST_TTL_SECONDS = 120`, `REQUEST_URL_BASE = "https://tap.xyz/p"`, `REQUEST_URL_VERSION = 1`, `ENS_DISPLAY_NAME_KEY = "name"`, `MAX_CHARGE = 1_000n * 10n ** 6n` ($1,000, a demo sanity cap).
+`src/config/constants.ts`: `REQUEST_TTL_SECONDS = 120`, `REQUEST_URL_BASE = "https://tap-pay.xyz/p"`, `REQUEST_URL_VERSION = 1`, `ENS_DISPLAY_NAME_KEY = "name"`, `MAX_CHARGE = 1_000n * 10n ** 6n` ($1,000, a demo sanity cap).
 
 ## Wire format 🔒 (`src/request/url.ts`)
 One NDEF URI record, target < 400 bytes:
 ```
-https://tap.xyz/p?v=1&c=<chainId>&m=<merchant>&n=<merchantName>&t=<token>&a=<amount>&x=<expiry>&k=<nonce>&s=<signature>
+https://tap-pay.xyz/p?v=1&c=<chainId>&m=<merchant>&n=<merchantName>&t=<token>&a=<amount>&x=<expiry>&k=<nonce>&s=<signature>
 ```
 | Param | Field | Encoding / decode rule |
 |---|---|---|
@@ -189,7 +189,7 @@ https://tap.xyz/p?v=1&c=<chainId>&m=<merchant>&n=<merchantName>&t=<token>&a=<amo
 - The TapPay address is **never** in the URL; it comes from the allowlist by `c`.
 - The decoder accepts **any host**, requires path `/p`, ignores unknown params, rejects missing or duplicate required params.
 - The encoder always emits params in the order above (stable output, snapshot-testable).
-- `tap.xyz` is a placeholder host (a domain we control is needed later for iPhone deep links).
+- `tap-pay.xyz` is controlled by the team and is the canonical request/deep-link host (D26).
 
 ## Conventions
 - Nonce: `toHex(crypto.getRandomValues(new Uint8Array(32)))` (the app loads `react-native-get-random-values` first).
