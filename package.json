@@ -13,7 +13,8 @@
     "test": "bun test packages",
     "test:contracts": "cd contracts && forge test",
     "check": "bun run arch && bun run lint && bun run typecheck && bun run test && bun run test:contracts",
-    "hooks:install": "git config core.hooksPath .githooks"
+    "hooks:install": "git config core.hooksPath .githooks",
+    "postinstall": "bun run --cwd=\"$(pwd)/node_modules/react-native-hce\" build"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
