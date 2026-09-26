@@ -1,4 +1,4 @@
-import type { Address } from "viem";
+import { type Address, getAddress } from "viem";
 import { baseSepolia, sepolia } from "viem/chains";
 
 export const PAYMENT_CHAIN_ID = 84532 as const;
@@ -26,3 +26,24 @@ export const ensConfig = {
 } as const;
 
 export const DEFAULT_TOKEN = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as Address;
+
+export function getPaymentChain(chainId: number) {
+  return chainId === PAYMENT_CHAIN_ID ? paymentChains[PAYMENT_CHAIN_ID] : undefined;
+}
+
+export function getTokenConfig(chainId: number, token: Address) {
+  const chain = getPaymentChain(chainId);
+  if (!chain) return undefined;
+
+  try {
+    const canonicalToken = getAddress(token);
+    const entry = Object.entries(chain.tokens).find(
+      ([address]) => getAddress(address) === canonicalToken,
+    );
+    if (!entry) return undefined;
+
+    return { address: getAddress(entry[0]), ...entry[1] };
+  } catch {
+    return undefined;
+  }
+}
