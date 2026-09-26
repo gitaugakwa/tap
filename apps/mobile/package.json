@@ -1,0 +1,28 @@
+{
+  "name": "@tap/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "57.0.16",
+    "@tap/core": "workspace:*",
+    "@tap/react-native": "workspace:*",
+    "expo": "57.0.25",
+    "expo-linking": "57.0.11",
+    "expo-router": "57.0.23",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-get-random-values": "1.11.0",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-screens": "4.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.4",
+    "typescript": "6.0.3"
+  }
+}
