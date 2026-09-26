@@ -55,7 +55,7 @@ Root `package.json` scripts:
     "arch": "bun run scripts/check-architecture.ts",
     "lint": "biome check .",
     "typecheck": "bun run --filter '*' typecheck",
-    "test": "bun test packages",
+    "test": "bun test packages apps",
     "test:contracts": "cd contracts && forge test",
     "abi": "bun run scripts/generate-abi.ts",
     "abi:check": "bun run abi && git diff --exit-code packages/core/src/config/abi.ts",
