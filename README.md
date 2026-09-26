@@ -80,12 +80,15 @@ configuration lives in [`packages/core/src/config/chains.ts`](packages/core/src/
 | Component | Network | Address |
 |---|---|---|
 | TapPay | Base Sepolia | [`0x4c679b2dE8AE517fF12AA34A1bE0F81913678792`](https://sepolia.basescan.org/address/0x4c679b2dE8AE517fF12AA34A1bE0F81913678792) |
+| TapSwapPay | Base Sepolia | [`0xA36df4D6DA08bA1FbE89ddEB7229218FAf0BF84d`](https://sepolia.basescan.org/address/0xA36df4D6DA08bA1FbE89ddEB7229218FAf0BF84d) |
 | `tap.eth` UserRegistry | Sepolia | [`0x6A2Cad68E45E1A5D5DF62D8deF294455c2360D78`](https://sepolia.etherscan.io/address/0x6A2Cad68E45E1A5D5DF62D8deF294455c2360D78) |
 | Permissioned Resolver | Sepolia | [`0x7F7c02793854B68B8fa5776EB768cbac5966AdCA`](https://sepolia.etherscan.io/address/0x7F7c02793854B68B8fa5776EB768cbac5966AdCA) |
 | TapMerchantRegistrar | Sepolia | [`0xcF7F9f2f0a9a471B1E2D6c4F0D1a59563821B759`](https://sepolia.etherscan.io/address/0xcF7F9f2f0a9a471B1E2D6c4F0D1a59563821B759) |
 
 TapPay deployment transaction:
 [`0x5139...69d2`](https://sepolia.basescan.org/tx/0x5139eadb16cae193bca62c9d9f0098927b826742bfbc7014a84b3e79c93769d2).
+TapSwapPay deployment transaction:
+[`0x34b2...58d3`](https://sepolia.basescan.org/tx/0x34b2e25bf8728c74d02971d1b76cded41e37b7bcad95814afb4e89fd01ae58d3).
 Latest protected P3 payment:
 [`0xbe61...c53a`](https://sepolia.basescan.org/tx/0xbe61a3aaea39b053e458d5aae479dd7eac3a184efe13c1b2a3520c743a94c53a).
 
