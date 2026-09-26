@@ -45,3 +45,4 @@ export {
   resolveMerchant,
 } from "./verify/ens";
 export { verifyRequest } from "./verify/verify-request";
+export { getWalletBalances } from "./wallet/balances";

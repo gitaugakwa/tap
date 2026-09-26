@@ -38,8 +38,26 @@ test("tamperRequestUrl changes each signed field", async () => {
     amount: 5_000_000n,
   });
   const original = core.encodeRequestUrl(await core.signRequest(request, fakeMerchantAccount));
+  const signed = core.decodeRequestUrl(original);
 
   for (const field of ["m", "n", "t", "a", "x", "k", "c"] as const) {
-    expect(tamperRequestUrl(original, field)).not.toBe(original);
+    const tampered = tamperRequestUrl(original, field);
+    expect(core.decodeRequestUrl(tampered)).not.toEqual(signed);
   }
+});
+
+test("fake URL decoder rejects a zero amount", async () => {
+  const core = createFakeCore();
+  const signed = await core.signRequest(
+    core.newChargeRequest({
+      merchant: fakeMerchantAccount.address,
+      merchantName: "yoyogi-market.tap.eth",
+      amount: 5_000_000n,
+    }),
+    fakeMerchantAccount,
+  );
+  const url = new URL(core.encodeRequestUrl(signed));
+  url.searchParams.set("a", "0");
+
+  expect(() => core.decodeRequestUrl(url.toString())).toThrow("Malformed payment request");
 });
