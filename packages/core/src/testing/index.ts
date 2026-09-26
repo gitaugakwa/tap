@@ -15,7 +15,7 @@ import { DEFAULT_TOKEN, PAYMENT_CHAIN_ID, paymentChains } from "../config/chains
 import { REQUEST_TTL_SECONDS, REQUEST_URL_BASE } from "../config/constants";
 import { TapDecodeError } from "../errors";
 import { PAYMENT_REQUEST_TYPES } from "../request/sign";
-import type { PaymentRequest, SignedRequest, VerifyResult } from "../types";
+import type { PaymentRequest, SignedRequest, SwapInput, SwapQuote, VerifyResult } from "../types";
 
 export type TamperField = "m" | "n" | "t" | "a" | "x" | "k" | "c";
 
@@ -31,6 +31,8 @@ export type TapCoreLike = {
   decodeRequestUrl(url: string): SignedRequest;
   verifyRequest(signed: SignedRequest): Promise<VerifyResult>;
   payWithPermit(signed: SignedRequest, account: LocalAccount): Promise<Hash>;
+  quoteSwap(signed: SignedRequest, input: SwapInput): Promise<SwapQuote>;
+  payWithSwap(signed: SignedRequest, account: LocalAccount, quote: SwapQuote): Promise<Hash>;
   waitForPayment(hash: Hash): Promise<"success" | "reverted">;
   watchPaid(merchant: Address, nonce: Hex, onPaid: (transaction: Hash | null) => void): () => void;
 };
@@ -163,6 +165,23 @@ export function createFakeCore(overrides: Partial<TapCoreLike> = {}): TapCoreLik
     },
     async payWithPermit() {
       return toHex(new Uint8Array(32).fill(2));
+    },
+    async quoteSwap(signed, input) {
+      return {
+        chainId: signed.chainId,
+        requestNonce: signed.request.nonce,
+        inputKind: input === "native" ? "native" : "erc20",
+        tokenIn: input === "native" ? paymentChains[PAYMENT_CHAIN_ID].swap.weth : getAddress(input),
+        tokenOut: signed.request.token,
+        path: "0x1234",
+        amountIn: 4_000_000_000_000_000n,
+        amountInMaximum: 4_040_000_000_000_000n,
+        amountOut: signed.request.amount,
+        slippageBps: 100n,
+      };
+    },
+    async payWithSwap() {
+      return toHex(new Uint8Array(32).fill(3));
     },
     async waitForPayment() {
       return "success";

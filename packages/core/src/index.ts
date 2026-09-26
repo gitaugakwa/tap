@@ -18,6 +18,7 @@ export {
 export { formatAmount, parseAmountInput } from "./format";
 export { isPaid, pay, payWithPermit, waitForPayment } from "./payment/pay";
 export { signPermit } from "./payment/permit";
+export { payWithSwap, quoteSwap } from "./payment/swap";
 export { watchPaid } from "./payment/watch";
 export { newChargeRequest } from "./request/create";
 export { hashRequest, PAYMENT_REQUEST_TYPES, signRequest } from "./request/sign";
@@ -32,6 +33,8 @@ export type {
   PaymentRequest,
   PermitSig,
   SignedRequest,
+  SwapInput,
+  SwapQuote,
   TapConfig,
   VerifyFailure,
   VerifyResult,

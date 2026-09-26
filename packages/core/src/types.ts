@@ -1,4 +1,4 @@
-import type { Address, Hash, Hex, LocalAccount, PublicClient } from "viem";
+import type { Address, Hash, Hex, LocalAccount, PublicClient, WalletClient } from "viem";
 
 export type PaymentRequest = {
   merchant: Address;
@@ -39,6 +39,21 @@ export type VerifyResult =
 
 export type PermitSig = { deadline: bigint; v: number; r: Hex; s: Hex };
 
+export type SwapInput = "native" | Address;
+
+export type SwapQuote = {
+  chainId: number;
+  requestNonce: Hex;
+  inputKind: "native" | "erc20";
+  tokenIn: Address;
+  tokenOut: Address;
+  path: Hex;
+  amountIn: bigint;
+  amountInMaximum: bigint;
+  amountOut: bigint;
+  slippageBps: bigint;
+};
+
 export type MerchantProfile = { address: Address | null; displayName: string | null };
 
 export type MerchantSetupCheck =
@@ -56,6 +71,7 @@ export type WalletBalances = {
 export type TapConfig = {
   rpcUrls?: { payment?: string; ens?: string };
   paymentClient?: PublicClient;
+  paymentWalletClient?: WalletClient;
   ensClient?: PublicClient;
   now?: () => Date;
 };
