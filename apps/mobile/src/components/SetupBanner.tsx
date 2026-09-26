@@ -50,16 +50,24 @@ export function SetupBanner({ merchantName, address }: { merchantName: string; a
 }
 
 const styles = StyleSheet.create({
-  okBanner: { gap: theme.spacing / 2 },
-  displayName: { color: theme.colors.foreground, fontSize: 18, fontWeight: "600" },
-  okText: { color: theme.colors.success, fontSize: 14, fontWeight: "600" },
+  okBanner: { alignItems: "center", flexDirection: "row", gap: theme.spacing, flexWrap: "wrap" },
+  displayName: { ...theme.type.display, color: theme.colors.foreground, fontSize: 22 },
+  okText: {
+    ...theme.type.label,
+    backgroundColor: theme.colors.success,
+    color: theme.colors.successText,
+    fontSize: 9,
+    paddingHorizontal: theme.spacing,
+    paddingVertical: 4,
+  },
   warningBanner: {
     borderColor: theme.colors.warning,
-    borderRadius: theme.spacing,
+    borderLeftWidth: 3,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     gap: theme.spacing / 2,
     padding: theme.spacing * 1.5,
   },
-  warningText: { color: theme.colors.warning, fontSize: 14 },
-  fixLink: { color: theme.colors.warning, fontSize: 14, fontWeight: "600" },
+  warningText: { color: theme.colors.warning, fontSize: 13, lineHeight: 19 },
+  fixLink: { ...theme.type.label, color: theme.colors.warning, fontSize: 10 },
 });

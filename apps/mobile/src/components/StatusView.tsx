@@ -11,6 +11,38 @@ const TITLE_COLORS: Record<StatusVariant, string> = {
   failure: theme.colors.failure,
 };
 
+const EYEBROWS: Record<StatusVariant, string> = {
+  neutral: "status",
+  pending: "working",
+  success: "settled onchain",
+  failure: "stopped",
+};
+
+function Glyph({ variant }: { variant: StatusVariant }) {
+  if (variant === "pending") {
+    return (
+      <View style={[styles.glyph, styles.glyphPending]}>
+        <ActivityIndicator color={theme.colors.accent} size="large" />
+      </View>
+    );
+  }
+  if (variant === "success") {
+    return (
+      <View style={[styles.glyph, styles.glyphSuccess]}>
+        <Text style={[styles.glyphText, styles.glyphTextSuccess]}>✓</Text>
+      </View>
+    );
+  }
+  if (variant === "failure") {
+    return (
+      <View style={[styles.glyph, styles.glyphFailure]}>
+        <Text style={[styles.glyphText, styles.glyphTextFailure]}>✕</Text>
+      </View>
+    );
+  }
+  return null;
+}
+
 export function StatusView({
   title,
   detail,
@@ -24,25 +56,52 @@ export function StatusView({
 }) {
   return (
     <View style={styles.container}>
-      {variant === "pending" ? <ActivityIndicator color={theme.colors.muted} size="large" /> : null}
-      {variant === "success" ? <Text style={styles.successGlyph}>✓</Text> : null}
-      {variant === "failure" ? <Text style={styles.failureGlyph}>✕</Text> : null}
-      <Text style={[styles.title, { color: TITLE_COLORS[variant] }]}>{title}</Text>
-      {detail ? <Text style={styles.detail}>{detail}</Text> : null}
-      {children}
+      <View style={styles.body}>
+        <Glyph variant={variant} />
+        <Text style={styles.eyebrow}>{EYEBROWS[variant]}</Text>
+        <Text style={[styles.title, { color: TITLE_COLORS[variant] }]}>{title}</Text>
+        {detail ? <Text style={styles.detail}>{detail}</Text> : null}
+      </View>
+      {children ? <View style={styles.actions}>{children}</View> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: theme.colors.background,
     flex: 1,
-    gap: theme.spacing * 1.5,
-    justifyContent: "center",
+    justifyContent: "space-between",
     padding: theme.spacing * 3,
   },
-  title: { fontSize: 32, fontWeight: "700" },
-  detail: { color: theme.colors.muted, fontSize: 16 },
-  successGlyph: { color: theme.colors.success, fontSize: 72, fontWeight: "700" },
-  failureGlyph: { color: theme.colors.failure, fontSize: 72, fontWeight: "700" },
+  body: { alignItems: "center", flex: 1, gap: theme.spacing * 1.5, justifyContent: "center" },
+  actions: { gap: theme.spacing, paddingBottom: theme.spacing * 2 },
+  glyph: {
+    alignItems: "center",
+    borderRadius: theme.radius.pill,
+    height: 104,
+    justifyContent: "center",
+    marginBottom: theme.spacing,
+    width: 104,
+  },
+  glyphPending: { borderColor: theme.colors.line, borderWidth: 1 },
+  glyphSuccess: { backgroundColor: theme.colors.success },
+  glyphFailure: { backgroundColor: theme.colors.failure },
+  glyphText: { fontSize: 46, fontWeight: "700" },
+  glyphTextSuccess: { color: theme.colors.successText },
+  glyphTextFailure: { color: theme.colors.surface },
+  eyebrow: { ...theme.type.label, color: theme.colors.muted, fontSize: 10 },
+  title: {
+    ...theme.type.display,
+    fontSize: 38,
+    lineHeight: 42,
+    textAlign: "center",
+  },
+  detail: {
+    color: theme.colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
+    maxWidth: 320,
+    textAlign: "center",
+  },
 });

@@ -27,11 +27,23 @@ export function AmountPad({ value, onChange }: { value: string; onChange(next: s
     <View style={styles.pad}>
       {KEYS.map((key) => (
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={key === "⌫" ? "Delete" : key}
           key={key}
-          style={styles.key}
+          style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
           onPress={() => onChange(nextAmountInput(value, key))}
         >
-          <Text style={styles.keyText}>{key}</Text>
+          {({ pressed }) => (
+            <Text
+              style={[
+                styles.keyText,
+                key === "⌫" && styles.keyTextMuted,
+                pressed && styles.keyTextPressed,
+              ]}
+            >
+              {key}
+            </Text>
+          )}
         </Pressable>
       ))}
     </View>
@@ -42,13 +54,16 @@ const styles = StyleSheet.create({
   pad: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing },
   key: {
     alignItems: "center",
-    backgroundColor: theme.colors.background,
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     flexBasis: "30%",
     flexGrow: 1,
-    paddingVertical: theme.spacing * 2.5,
+    justifyContent: "center",
+    paddingVertical: theme.spacing * 2.25,
   },
-  keyText: { color: theme.colors.foreground, fontSize: 24, fontWeight: "600" },
+  keyPressed: { backgroundColor: theme.colors.accent, borderColor: theme.colors.accent },
+  keyText: { ...theme.type.display, color: theme.colors.foreground, fontSize: 28 },
+  keyTextMuted: { color: theme.colors.muted, fontSize: 22 },
+  keyTextPressed: { color: theme.colors.accentText },
 });

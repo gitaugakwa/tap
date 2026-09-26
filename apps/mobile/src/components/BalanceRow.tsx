@@ -43,18 +43,30 @@ export function BalanceRow({ address }: { address: Address }) {
 
   if (!balances) {
     return (
-      <Text style={styles.muted}>{unavailable ? "Balances unavailable" : "Loading balances…"}</Text>
+      <View style={styles.card}>
+        <Text style={styles.muted}>
+          {unavailable ? "Balances unavailable" : "Loading balances…"}
+        </Text>
+      </View>
     );
   }
 
   const usdc = balances.tokens.find((token) => token.symbol === "USDC");
 
   return (
-    <View style={styles.row}>
-      <Text style={styles.value}>
-        {balances.tokens.map((token) => `${token.symbol} ${token.display}`).join(" · ")}
-        {` · Gas ${balances.gas.amount > 0n ? "✓" : "✗"}`}
-      </Text>
+    <View style={styles.card}>
+      <View style={styles.assets}>
+        {balances.tokens.map((token) => (
+          <View key={token.address} style={styles.asset}>
+            <Text style={styles.assetLabel}>{token.symbol}</Text>
+            <Text style={styles.assetValue}>{token.display}</Text>
+          </View>
+        ))}
+        <View style={styles.asset}>
+          <Text style={styles.assetLabel}>{balances.gas.symbol}</Text>
+          <Text style={styles.assetValue}>{balances.gas.display}</Text>
+        </View>
+      </View>
       {balances.gas.amount === 0n ? (
         <Text style={styles.warning}>Add Base Sepolia ETH for gas</Text>
       ) : null}
@@ -64,8 +76,17 @@ export function BalanceRow({ address }: { address: Address }) {
 }
 
 const styles = StyleSheet.create({
-  row: { gap: theme.spacing / 2 },
-  value: { color: theme.colors.foreground, fontSize: 16 },
-  muted: { color: theme.colors.muted, fontSize: 16 },
-  warning: { color: theme.colors.warning, fontSize: 14 },
+  card: {
+    borderColor: theme.colors.line,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    gap: theme.spacing,
+    padding: theme.spacing * 1.5,
+  },
+  assets: { flexDirection: "row", gap: theme.spacing * 3 },
+  asset: { gap: 2 },
+  assetLabel: { ...theme.type.label, color: theme.colors.muted, fontSize: 9 },
+  assetValue: { color: theme.colors.foreground, fontSize: 17, fontWeight: "600" },
+  muted: { color: theme.colors.muted, fontSize: 14 },
+  warning: { color: theme.colors.warning, fontSize: 13 },
 });

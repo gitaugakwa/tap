@@ -1,7 +1,8 @@
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { theme } from "../theme";
+import { Button } from "./Button";
 
 export function QrScanner({ onScan, onCancel }: { onScan(url: string): void; onCancel(): void }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -10,13 +11,10 @@ export function QrScanner({ onScan, onCancel }: { onScan(url: string): void; onC
   if (!permission?.granted) {
     return (
       <View style={styles.permission}>
+        <Text style={styles.permissionLabel}>Camera</Text>
         <Text style={styles.permissionText}>Tap needs the camera to scan the merchant's code.</Text>
-        <Pressable style={styles.button} onPress={() => void requestPermission()}>
-          <Text style={styles.buttonText}>Allow camera</Text>
-        </Pressable>
-        <Pressable style={styles.button} onPress={onCancel}>
-          <Text style={styles.buttonText}>Cancel</Text>
-        </Pressable>
+        <Button label="Allow camera" onPress={() => void requestPermission()} />
+        <Button label="Cancel" variant="quiet" onPress={onCancel} />
       </View>
     );
   }
@@ -33,39 +31,54 @@ export function QrScanner({ onScan, onCancel }: { onScan(url: string): void; onC
           onScan(data);
         }}
       />
-      <Pressable style={[styles.button, styles.overlayButton]} onPress={onCancel}>
-        <Text style={styles.buttonText}>Cancel</Text>
-      </Pressable>
+      <View style={styles.overlay} pointerEvents="none">
+        <View style={styles.reticle} />
+        <Text style={styles.hint}>Point at the merchant's code</Text>
+      </View>
+      <View style={styles.overlayActions}>
+        <Button label="Cancel" variant="secondary" onPress={onCancel} />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scanner: { flex: 1 },
+  scanner: { backgroundColor: theme.colors.background, flex: 1 },
   permission: {
+    backgroundColor: theme.colors.background,
     flex: 1,
     gap: theme.spacing * 2,
     justifyContent: "center",
     padding: theme.spacing * 3,
   },
-  permissionText: { color: theme.colors.foreground, fontSize: 18, textAlign: "center" },
-  button: {
-    borderColor: theme.colors.muted,
-    borderRadius: theme.spacing,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing * 3,
-    paddingVertical: theme.spacing * 1.5,
-  },
-  overlayButton: {
-    alignSelf: "center",
-    backgroundColor: theme.colors.background,
-    bottom: theme.spacing * 6,
-    position: "absolute",
-  },
-  buttonText: {
+  permissionLabel: { ...theme.type.label, color: theme.colors.muted, fontSize: 10 },
+  permissionText: {
+    ...theme.type.display,
     color: theme.colors.foreground,
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
+    fontSize: 26,
+    lineHeight: 32,
+    marginBottom: theme.spacing,
+  },
+  overlay: { alignItems: "center", flex: 1, gap: theme.spacing * 2, justifyContent: "center" },
+  reticle: {
+    borderColor: theme.colors.accent,
+    borderRadius: theme.radius.md,
+    borderWidth: 2,
+    height: 240,
+    width: 240,
+  },
+  hint: {
+    ...theme.type.label,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.foreground,
+    fontSize: 10,
+    paddingHorizontal: theme.spacing * 1.5,
+    paddingVertical: theme.spacing,
+  },
+  overlayActions: {
+    bottom: theme.spacing * 5,
+    left: theme.spacing * 3,
+    position: "absolute",
+    right: theme.spacing * 3,
   },
 });
