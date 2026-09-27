@@ -46,6 +46,22 @@ The customer can keep the direct USDC permit path or select ETH. ETH is quoted a
 USDC through Uniswap v3, capped before confirmation, swapped by `TapSwapPay`, and then settled
 through the same `TapPay` request. The merchant always receives the signed USDC amount.
 
+### Uniswap integration
+
+Tap uses QuoterV2 to compare direct and WETH-bridged Uniswap v3 routes, then displays a bounded
+maximum input before payment. `TapSwapPay` calls SwapRouter02 `exactOutput`, sends the exact signed
+USDC amount through `TapPay`, and atomically refunds unused ETH. Direct USDC payments remain the
+default path and do not touch Uniswap.
+
+Relevant implementation and evidence:
+
+- [`TapSwapPay` exact-output settlement, refund, and route validation](contracts/src/TapSwapPay.sol#L52-L141)
+- [SDK route discovery, quoting, slippage cap, and payment](packages/core/src/payment/swap.ts#L55-L316)
+- [Customer ETH selection and maximum-input confirmation](apps/mobile/app/customer/confirm.tsx#L51-L120)
+- [Solidity adapter tests](contracts/test/TapSwapPay.t.sol#L67-L245) and [SDK swap tests](packages/core/test/payment/swap.test.ts#L51-L216)
+- [Funded live exact-output test](scripts/e2e-swap.ts#L72-L139) and [`FEEDBACK.md`](FEEDBACK.md)
+- [Base Sepolia payment transaction](https://sepolia.basescan.org/tx/0x1cfd4e9ea0fb449711c771cda22da566bc7d32180c95d9423ec1a61351caabfa)
+
 ## Why ENSv2 is central
 
 | ENSv2 feature | Tap usage | What breaks without it |
